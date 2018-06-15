@@ -1,9 +1,11 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 import numpy as np
 
+
 class Dataset(object):
+
     def __init__(self, pos, neg):
         self.pos_text = pos
         self.neg_text = neg
@@ -37,29 +39,45 @@ class Dataset(object):
 
     def merge(self):
         self.mixed_dataset = self.pos_label + self.neg_label
-        print(self.mixed_dataset)
         return self.mixed_dataset
 
+
 class LR(object):
-    # __init__: copy from zhao xin
-    #def __init__(self, train_set, test_set, sizes, learning_rate, epoachs, minibatch_size):
+
+    #def __init__(self, train_set, test_set, sizes, learning_rate, epochs, minibatch_size):
     def __init__(self, train_set, test_set):
         self.train_set = train_set
         self.test_set = test_set
         #self.learning_rate = learning_rate
-        #self.epoachs = epoachs
+        #self.epochs = epochs
         #self.minibatch_size = minibatch_size
         #self.w_ = np.zeros(size)
         #self.b_ = np.random.randn()
-    
-if __name__ == '__main__':
-    train_set = Dataset('pos_train.review', 'neg_train.review')
+
+
+def train(train_set, test_set):
+    lr_model = LR(train_set, test_set)
+
+def merge_data(dataset):
+    train_set = Dataset(dataset[0], dataset[1])
     train_set.labeling()
     train_set.merge()
 
-    test_set = Dataset('pos_test.review', 'neg_test.review')
+    test_set = Dataset(dataset[2], dataset[3])
     test_set.labeling()
     test_set.merge()
 
-    lr_model = LR(train_set.mixed_dataset, test_set.mixed_dataset)
+    return train_set.mixed_dataset, test_set.mixed_dataset
 
+def main(dataset):
+    train_set, test_set = merge_data(dataset)
+    train(train_set, test_set)
+
+if __name__ == '__main__':
+    train_pos_set = 'pos_train.review'
+    train_neg_set = 'neg_train.review'
+    test_pos_set = 'pos_test.review'
+    test_neg_set = 'neg_test.review'
+
+    dataset = [train_pos_set, train_neg_set, test_pos_set, test_neg_set]
+    main(dataset)
