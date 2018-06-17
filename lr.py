@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+from numpy.random import *
 import numpy as np
 
 
@@ -42,36 +43,67 @@ class Dataset(object):
         return self.mixed_dataset
 
 
-class LR(object):
+class LogisticRegression(object):
 
-    #def __init__(self, train_set, test_set, sizes, learning_rate, epochs, minibatch_size):
-    def __init__(self, train_set, test_set):
-        self.train_set = train_set
-        self.test_set = test_set
-        #self.learning_rate = learning_rate
-        #self.epochs = epochs
-        #self.minibatch_size = minibatch_size
-        #self.w_ = np.zeros(size)
-        #self.b_ = np.random.randn()
+    def __init__(self, w):
+        self.w = w
 
 
-def train(train_set, test_set):
-    lr_model = LR(train_set, test_set)
-
-def merge_data(dataset):
+def load(dataset):
     train_set = Dataset(dataset[0], dataset[1])
     train_set.labeling()
     train_set.merge()
+    xs_train = [i[0] for i in train_set.mixed_dataset]
+    ys_train = [i[1] for i in train_set.mixed_dataset]
 
-    test_set = Dataset(dataset[2], dataset[3])
-    test_set.labeling()
-    test_set.merge()
+    return xs_train, ys_train
 
-    return train_set.mixed_dataset, test_set.mixed_dataset
 
-def main(dataset):
-    train_set, test_set = merge_data(dataset)
-    train(train_set, test_set)
+class GaussianInitializer(object):
+    def __init__ (self):
+        self.dim = 0
+
+    def apply(self, w):
+        self.dim = w.shape[0]
+        w = randn(self.dim)
+
+
+def train(train_set):
+    xs_train, ys_train = load(train_set)
+    print(xs_train)
+    print(ys_train)
+
+    dim = xs_train[0].shape[0]
+    w = np.empty((dim,), dtype=np.float16)
+
+    initializer = GaussianInitializer()
+    initializer.apply(w)
+    print(w)
+
+    """
+    model = LogisticRegression(w)
+    optimizer = SGD(learning_rate)
+    """
+
+    #def process(xs_train, ys_train):
+
+    """
+    for epoch in range(1, epochs + 1):
+        loss, accuracy = process(xs_train, ys_train)
+
+        logging.info(
+            "[{}] epoch {} - #samples: {}, loss: {:.8f}, accuracy: {:.8f}"
+            .format("train", epoch, len(ys_train), loss, accuracy))
+    """
+
+def test(test_set):
+    test_set = None
+
+
+def main(train_set, test_set):
+    train(train_set)
+    test(test_set)
+
 
 if __name__ == '__main__':
     train_pos_set = 'pos_train.review'
@@ -79,5 +111,6 @@ if __name__ == '__main__':
     test_pos_set = 'pos_test.review'
     test_neg_set = 'neg_test.review'
 
-    dataset = [train_pos_set, train_neg_set, test_pos_set, test_neg_set]
-    main(dataset)
+    train_set = [train_pos_set, train_neg_set]
+    test_set =  [test_pos_set, test_neg_set]
+    main(train_set, test_set)
