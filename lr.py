@@ -49,7 +49,6 @@ def load(dataset):
     train_set.merge()
     xs_train = [i[0] for i in train_set.mixed_dataset]
     ys_train = [i[1] for i in train_set.mixed_dataset]
-
     return xs_train, ys_train
 
 
@@ -71,19 +70,17 @@ class LogisticRegression(object):
     def __init__(self, w):
         self.w = w
 
-    def target_func(self, xs_train, ys_train):
+    def grad(self, xs_train, ys_train):
         target = [0 for _ in range(200000)]
         for i in range(len(xs_train)):
             target = target + (xs_train[i] * (sigmoid(np.dot((self.w).T, xs_train[i]) - ys_train[i])))
-            """
-            print('(self.w).T:  {}'.format((self.w).T))
-            print('xs_train[i]: {}'.format(xs_train[i]))
-            print('np.dot((self.w).T, xs_train[i]): {}'.format(np.dot((self.w).T, xs_train[i])))
-            print('sigmoid(np.dot((self.w).T, xs_train[i]) - ys_train[i]):  {}'.format(sigmoid(np.dot((self.w).T, xs_train[i]) - ys_train[i])))
-            print('xs_train[i] * (sigmoid(np.dot((self.w).T, xs_train[i]) - ys_train[i])):  {}'.format(xs_train[i] * (sigmoid(np.dot((self.w).T, xs_train[i]) - ys_train[i]))))
-            print('target: {}'.format(target))
-            """
         return target
+
+    def forward(self, xs_train):
+        ys_predict = [0 for _ in range(len(xs_train))]
+        for i in range(len(xs_train)):
+            ys_predict[i] = (sigmoid(np.dot((self.w).T, xs_train[i])))
+        return ys_predict
 
 
 class SGD(object):
@@ -91,9 +88,28 @@ class SGD(object):
     def __init__(self, learning_rate):
         self.learning_rate = learning_rate
 
-    def fit(self, model, xs_train, ys_train):
-        model.w = model.w - self.learning_rate * model.target_func(xs_train, ys_train)
-        print('model.w: {}'.format(model.w))
+    def cross_entropy_error_func(self, model, xs_train, ys_train):
+        model.w = model.w - self.learning_rate * model.grad(xs_train, ys_train)
+
+
+def culc_accuracy(ys_predict, ys_train):
+    if ys_predict > 0.5:
+        ys_predict_label = 1
+    else:
+        ys_predict_label = 0
+    count = 0
+    for i in range(len(ys_predict_label)):
+        if ys_predict_label == ys_train:
+            count += 1
+    accuracy = count / len(ys_predict_label)
+    return accuracy
+
+
+def culc_loss(ys_predict, ys_train):
+    loss_sum = 0
+    for i in range(len(ys_predict)):
+        loss_sum = loss_sum + abs(ys_predict[i] - ys_train[i])
+    return loss_sum
 
 
 def train(train_set, epochs, learning_rate):
@@ -106,17 +122,17 @@ def train(train_set, epochs, learning_rate):
     optimizer = SGD(learning_rate)
 
     def process(xs_train, ys_train):
-        optimizer.fit(model, xs_train, ys_train)
+        ys_predict = model.forward(xs_train)
+        loss = culc_loss(ys_predict, ys_train)
+        accuracy = culc_accuracy(ys_predict, ys_train)
+        optimizer.cross_entropy_error_func(model, xs_train, ys_train)
 
     for epoch in range(1, epochs + 1):
-        #loss, accuracy = process(xs_train, ys_train)
-        process(xs_train, ys_train)
+        loss, accuracy = process(xs_train, ys_train)
 
-    """
         logging.info(
             "[{}] epoch {} - #samples: {}, loss: {:.8f}, accuracy: {:.8f}"
             .format("train", epoch, len(ys_train), loss, accuracy))
-    """
 
 def test(test_set):
     test_set = None
