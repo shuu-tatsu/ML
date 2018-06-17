@@ -3,7 +3,7 @@
 
 from numpy.random import *
 import numpy as np
-
+import math
 
 class Dataset(object):
 
@@ -36,17 +36,11 @@ class Dataset(object):
         pos_lines = self.load(self.pos_text)
         self.pos_label = [(line, 1) for line in pos_lines]
         neg_lines = self.load(self.neg_text)
-        self.neg_label = [(line, -1) for line in neg_lines]
+        self.neg_label = [(line, 0) for line in neg_lines]
 
     def merge(self):
         self.mixed_dataset = self.pos_label + self.neg_label
         return self.mixed_dataset
-
-
-class LogisticRegression(object):
-
-    def __init__(self, w):
-        self.w = w
 
 
 def load(dataset):
@@ -60,7 +54,7 @@ def load(dataset):
 
 
 class GaussianInitializer(object):
-    def __init__ (self):
+    def __init__(self):
         self.dim = 0
 
     def apply(self, w):
@@ -68,29 +62,57 @@ class GaussianInitializer(object):
         w = randn(self.dim)
 
 
-def train(train_set):
-    xs_train, ys_train = load(train_set)
-    print(xs_train)
-    print(ys_train)
+def sigmoid(x):
+    return math.exp(x) / (1 + math.exp(x))
 
+
+class LogisticRegression(object):
+
+    def __init__(self, w):
+        self.w = w
+
+    def target_func(self, xs_train, ys_train):
+        target = [0 for _ in range(200000)]
+        for i in range(len(xs_train)):
+            target = target + (xs_train[i] * (sigmoid(np.dot((self.w).T, xs_train[i]) - ys_train[i])))
+            """
+            print('(self.w).T:  {}'.format((self.w).T))
+            print('xs_train[i]: {}'.format(xs_train[i]))
+            print('np.dot((self.w).T, xs_train[i]): {}'.format(np.dot((self.w).T, xs_train[i])))
+            print('sigmoid(np.dot((self.w).T, xs_train[i]) - ys_train[i]):  {}'.format(sigmoid(np.dot((self.w).T, xs_train[i]) - ys_train[i])))
+            print('xs_train[i] * (sigmoid(np.dot((self.w).T, xs_train[i]) - ys_train[i])):  {}'.format(xs_train[i] * (sigmoid(np.dot((self.w).T, xs_train[i]) - ys_train[i]))))
+            print('target: {}'.format(target))
+            """
+        return target
+
+
+class SGD(object):
+
+    def __init__(self, learning_rate):
+        self.learning_rate = learning_rate
+
+    def fit(self, model, xs_train, ys_train):
+        model.w = model.w - self.learning_rate * model.target_func(xs_train, ys_train)
+        print('model.w: {}'.format(model.w))
+
+
+def train(train_set, epochs, learning_rate):
+    xs_train, ys_train = load(train_set)
     dim = xs_train[0].shape[0]
     w = np.empty((dim,), dtype=np.float16)
-
     initializer = GaussianInitializer()
     initializer.apply(w)
-    print(w)
-
-    """
     model = LogisticRegression(w)
     optimizer = SGD(learning_rate)
-    """
 
-    #def process(xs_train, ys_train):
+    def process(xs_train, ys_train):
+        optimizer.fit(model, xs_train, ys_train)
 
-    """
     for epoch in range(1, epochs + 1):
-        loss, accuracy = process(xs_train, ys_train)
+        #loss, accuracy = process(xs_train, ys_train)
+        process(xs_train, ys_train)
 
+    """
         logging.info(
             "[{}] epoch {} - #samples: {}, loss: {:.8f}, accuracy: {:.8f}"
             .format("train", epoch, len(ys_train), loss, accuracy))
@@ -100,8 +122,8 @@ def test(test_set):
     test_set = None
 
 
-def main(train_set, test_set):
-    train(train_set)
+def main(train_set, test_set, epochs, learning_rate):
+    train(train_set, epochs, learning_rate)
     test(test_set)
 
 
@@ -110,7 +132,9 @@ if __name__ == '__main__':
     train_neg_set = 'neg_train.review'
     test_pos_set = 'pos_test.review'
     test_neg_set = 'neg_test.review'
+    epochs = 5
+    learning_rate = 0.1
 
     train_set = [train_pos_set, train_neg_set]
     test_set =  [test_pos_set, test_neg_set]
-    main(train_set, test_set)
+    main(train_set, test_set, epochs, learning_rate)
