@@ -5,6 +5,7 @@ from numpy.random import *
 import numpy as np
 import math
 
+
 class Dataset(object):
 
     def __init__(self, pos, neg):
@@ -93,10 +94,12 @@ class SGD(object):
 
 
 def culc_accuracy(ys_predict, ys_train):
-    if ys_predict > 0.5:
-        ys_predict_label = 1
-    else:
-        ys_predict_label = 0
+    ys_predict_label = [0 for _ in range(len(ys_predict))]
+    for i in range(len(ys_predict)):
+        if ys_predict[i] > 0.5:
+            ys_predict_label[i] = 1
+        else:
+            ys_predict_label[i] = 0
     count = 0
     for i in range(len(ys_predict_label)):
         if ys_predict_label == ys_train:
@@ -126,11 +129,12 @@ def train(train_set, epochs, learning_rate):
         loss = culc_loss(ys_predict, ys_train)
         accuracy = culc_accuracy(ys_predict, ys_train)
         optimizer.cross_entropy_error_func(model, xs_train, ys_train)
+        return loss, accuracy
 
     for epoch in range(1, epochs + 1):
         loss, accuracy = process(xs_train, ys_train)
 
-        logging.info(
+        print(
             "[{}] epoch {} - #samples: {}, loss: {:.8f}, accuracy: {:.8f}"
             .format("train", epoch, len(ys_train), loss, accuracy))
 
