@@ -4,6 +4,8 @@
 from numpy.random import *
 import numpy as np
 import math
+import logging
+import random
 
 
 class Dataset(object):
@@ -48,6 +50,7 @@ def load(dataset):
     train_set = Dataset(dataset[0], dataset[1])
     train_set.labeling()
     train_set.merge()
+    random.shuffle(train_set.mixed_dataset)
     xs_train = [i[0] for i in train_set.mixed_dataset]
     ys_train = [i[1] for i in train_set.mixed_dataset]
     return xs_train, ys_train
@@ -63,7 +66,8 @@ class GaussianInitializer(object):
 
 
 def sigmoid(x):
-    return math.exp(x) / (1 + math.exp(x))
+    sigmoid = math.exp(x) / (1 + math.exp(x))
+    return sigmoid
 
 
 class LogisticRegression(object):
@@ -71,7 +75,7 @@ class LogisticRegression(object):
     def __init__(self, w):
         self.w = w
 
-    def grad(self, xs_train, ys_train):
+    def grad_batch(self, xs_train, ys_train):
         target = [0 for _ in range(200000)]
         for i in range(len(xs_train)):
             target = target + (xs_train[i] * (sigmoid(np.dot((self.w).T, xs_train[i]) - ys_train[i])))
@@ -95,16 +99,16 @@ class SGD(object):
         model.w = model.w - self.learning_rate * model.grad_mini_batch(x_mini_batch, y_mini_batch)
 
 
-def compare(y_predict_mini_batch, y_mini_batch):
+def count_correct(y_predict_mini_batch, y_mini_batch):
     if y_predict_mini_batch > 0.5:
         y_predict_label = 1
     else:
         y_predict_label = 0
     if y_predict_label == y_mini_batch:
-        match = 1
+        correct = 1
     else:
-        match = 0
-    return match
+        correct = 0
+    return correct
 
 
 def culc_loss(y_predict_mini_batch, y_mini_batch):
@@ -127,19 +131,18 @@ def train(train_set, epochs, learning_rate):
 
     def process(xs_train, ys_train):
         loss = 0.0
-        count = 0
+        correct = 0
         for x_mini_batch, y_mini_batch in get_mini_batches(xs_train, ys_train):
             y_predict_mini_batch = model.forward(x_mini_batch)
             loss += culc_loss(y_predict_mini_batch, y_mini_batch)
-            count += compare(y_predict_mini_batch, y_mini_batch)
+            correct += count_correct(y_predict_mini_batch, y_mini_batch)
             optimizer.cross_entropy_error_func(model, x_mini_batch, y_mini_batch)
-        accuracy = count / len(ys_train)
+        accuracy = correct / len(ys_train)
         return loss, accuracy
 
     for epoch in range(1, epochs + 1):
         loss, accuracy = process(xs_train, ys_train)
-
-        print(
+        logging.info(
             "[{}] epoch {} - #samples: {}, loss: {:.8f}, accuracy: {:.8f}"
             .format("train", epoch, len(ys_train), loss, accuracy))
 
@@ -153,12 +156,15 @@ def main(train_set, test_set, epochs, learning_rate):
 
 
 if __name__ == '__main__':
-    """
+    logging.basicConfig(
+    format="%(asctime)s %(levelname)s %(message)s", level=logging.INFO)
+
     train_pos_set = 'positive.review'
     train_neg_set = 'negative.review'
     """
     train_pos_set = 'pos_train.review'
     train_neg_set = 'neg_train.review'
+    """
     test_pos_set = 'pos_test.review'
     test_neg_set = 'neg_test.review'
     epochs = 10
