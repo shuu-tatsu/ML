@@ -148,12 +148,12 @@ def main(train_set, test_set, epochs, learning_rate):
 
 
 if __name__ == '__main__':
+    """
     train_pos_set = 'positive.review'
     train_neg_set = 'negative.review'
     """
     train_pos_set = 'pos_train.review'
     train_neg_set = 'neg_train.review'
-    """
     test_pos_set = 'pos_test.review'
     test_neg_set = 'neg_test.review'
     epochs = 10
