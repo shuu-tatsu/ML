@@ -58,13 +58,13 @@ def load(dataset):
     random.shuffle(train_set.mixed_dataset)
     xs_train = [i[0] for i in train_set.mixed_dataset]
     ys_train = [i[1] for i in train_set.mixed_dataset]
-    """
+
     np.save('xs_all_train.npy', xs_train)
     np.save('ys_all_train.npy', ys_train)
     """
     np.save('xs_train.npy', xs_train)
     np.save('ys_train.npy', ys_train)
-
+    """
 
 def main(train_set, test_set):
     load(train_set)
@@ -73,13 +73,13 @@ def main(train_set, test_set):
 if __name__ == '__main__':
     logging.basicConfig(
     format="%(asctime)s %(levelname)s %(message)s", level=logging.INFO)
-    """
+
     train_pos_set = 'positive.review'
     train_neg_set = 'negative.review'
     """
     train_pos_set = 'pos_train.review'
     train_neg_set = 'neg_train.review'
-
+    """
     test_pos_set = 'pos_test.review'
     test_neg_set = 'neg_test.review'
 
