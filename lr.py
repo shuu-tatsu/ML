@@ -77,10 +77,12 @@ class LogisticRegression(object):
             target = target + (xs_train[i] * (sigmoid(np.dot((self.w).T, xs_train[i]) - ys_train[i])))
         return target
 
-    def forward(self, xs_train):
-        ys_predict = [0 for _ in range(len(xs_train))]
-        for i in range(len(xs_train)):
-            ys_predict[i] = (sigmoid(np.dot((self.w).T, xs_train[i])))
+    def grad_mini_batch(self, x_mini_batch, y_mini_batch):
+        target = (x_mini_batch * (sigmoid(np.dot((self.w).T, x_mini_batch) - y_mini_batch)))
+        return target
+
+    def forward(self, x_mini_batch):
+        ys_predict = (sigmoid(np.dot((self.w).T, x_mini_batch)))
         return ys_predict
 
 
@@ -89,31 +91,30 @@ class SGD(object):
     def __init__(self, learning_rate):
         self.learning_rate = learning_rate
 
-    def cross_entropy_error_func(self, model, xs_train, ys_train):
-        model.w = model.w - self.learning_rate * model.grad(xs_train, ys_train)
+    def cross_entropy_error_func(self, model, x_mini_batch, y_mini_batch):
+        model.w = model.w - self.learning_rate * model.grad_mini_batch(x_mini_batch, y_mini_batch)
 
 
-def culc_accuracy(ys_predict, ys_train):
-    ys_predict_label = [0 for _ in range(len(ys_predict))]
-    for i in range(len(ys_predict)):
-        if ys_predict[i] > 0.5:
-            ys_predict_label[i] = 1
-        else:
-            ys_predict_label[i] = 0
-    count = 0
-    for i in range(len(ys_predict_label)):
-        if ys_predict_label == ys_train:
-            count += 1
-    accuracy = count / len(ys_predict_label)
-    return accuracy
+def compare(y_predict_mini_batch, y_mini_batch):
+    if y_predict_mini_batch > 0.5:
+        y_predict_label = 1
+    else:
+        y_predict_label = 0
+    if y_predict_label == y_mini_batch:
+        match = 1
+    else:
+        match = 0
+    return match
 
 
-def culc_loss(ys_predict, ys_train):
-    loss_sum = 0
-    for i in range(len(ys_predict)):
-        loss_sum = loss_sum + abs(ys_predict[i] - ys_train[i])
-    return loss_sum
+def culc_loss(y_predict_mini_batch, y_mini_batch):
+    loss = abs(y_predict_mini_batch - y_mini_batch)
+    return loss
 
+
+def get_mini_batches(xs_train, ys_train):
+    for i in range(len(ys_train)):
+        yield xs_train[i], ys_train[i]
 
 def train(train_set, epochs, learning_rate):
     xs_train, ys_train = load(train_set)
@@ -125,10 +126,14 @@ def train(train_set, epochs, learning_rate):
     optimizer = SGD(learning_rate)
 
     def process(xs_train, ys_train):
-        ys_predict = model.forward(xs_train)
-        loss = culc_loss(ys_predict, ys_train)
-        accuracy = culc_accuracy(ys_predict, ys_train)
-        optimizer.cross_entropy_error_func(model, xs_train, ys_train)
+        loss = 0.0
+        count = 0
+        for x_mini_batch, y_mini_batch in get_mini_batches(xs_train, ys_train):
+            y_predict_mini_batch = model.forward(x_mini_batch)
+            loss += culc_loss(y_predict_mini_batch, y_mini_batch)
+            count += compare(y_predict_mini_batch, y_mini_batch)
+            optimizer.cross_entropy_error_func(model, x_mini_batch, y_mini_batch)
+        accuracy = count / len(ys_train)
         return loss, accuracy
 
     for epoch in range(1, epochs + 1):
