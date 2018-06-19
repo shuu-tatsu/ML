@@ -28,11 +28,17 @@ class LogisticRegression(object):
         self.w = w
 
     def grad_mini_batch(self, x_mini_batch, y_mini_batch):
-        target = (x_mini_batch * (sigmoid(np.dot((self.w).T, x_mini_batch) - y_mini_batch)))
+        target = np.dot(x_mini_batch, (sigmoid(np.dot((self.w).T, x_mini_batch) - y_mini_batch)))
         return target
 
     def forward(self, x_mini_batch):  #something wrong ?
-        ys_predict = (sigmoid(np.dot((self.w).T, x_mini_batch)))
+        ys_predict = sigmoid(np.dot((self.w).T, x_mini_batch))
+        a = np.dot((self.w).T, x_mini_batch)
+        print('np.dot((self.w).T, x_mini_batch): {}'.format(a))
+        print('self.w: {}'.format(self.w))
+        print('x_mini_batch: {}'.format(x_mini_batch))
+        print('ys_predict: {}'.format(ys_predict))
+        print('')
         return ys_predict
 
 
@@ -95,27 +101,19 @@ def train(xs_train, ys_train, epochs, learning_rate):
             .format("train", epoch, len(ys_train), loss, accuracy))
 
 
-def test(xs_test, ys_test):
-    xs_test = None
-    ys_test = None
-
-
-def main(xs_train, ys_train, xs_test, ys_test, epochs, learning_rate):
+def main(xs_train, ys_train, epochs, learning_rate):
     train(xs_train, ys_train, epochs, learning_rate)
-    test(xs_test, ys_test)
 
 
 if __name__ == '__main__':
     logging.basicConfig(
     format="%(asctime)s %(levelname)s %(message)s", level=logging.INFO)
-    epochs = 20
+    epochs = 10
     learning_rate = 0.05
-    """
     xs_train = 'xs_train.npy'
     ys_train = 'ys_train.npy'
     """
     xs_train = 'xs_all_train.npy'
     ys_train = 'ys_all_train.npy'
-    xs_test = 'xs_train.npy'
-    ys_test = 'ys_train.npy'
-    main(xs_train, ys_train, xs_test, ys_test, epochs, learning_rate)
+    """
+    main(xs_train, ys_train, epochs, learning_rate)
