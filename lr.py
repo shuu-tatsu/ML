@@ -128,11 +128,10 @@ if __name__ == '__main__':
     format="%(asctime)s %(levelname)s %(message)s", level=logging.INFO)
     epochs = 10
     learning_rate = 0.05
-
+    """
     xs_train = 'xs_train.npy'
     ys_train = 'ys_train.npy'
     """
     xs_train = 'xs_all_train.npy'
     ys_train = 'ys_all_train.npy'
-    """
     main(xs_train, ys_train, epochs, learning_rate)
