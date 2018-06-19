@@ -27,17 +27,11 @@ class LogisticRegression(object):
     def __init__(self, w):
         self.w = w
 
-    def grad_batch(self, xs_train, ys_train):
-        target = [0 for _ in range(200000)]
-        for i in range(len(xs_train)):
-            target = target + (xs_train[i] * (sigmoid(np.dot((self.w).T, xs_train[i]) - ys_train[i])))
-        return target
-
     def grad_mini_batch(self, x_mini_batch, y_mini_batch):
         target = (x_mini_batch * (sigmoid(np.dot((self.w).T, x_mini_batch) - y_mini_batch)))
         return target
 
-    def forward(self, x_mini_batch):
+    def forward(self, x_mini_batch):  #something wrong ?
         ys_predict = (sigmoid(np.dot((self.w).T, x_mini_batch)))
         return ys_predict
 
@@ -47,7 +41,7 @@ class SGD(object):
     def __init__(self, learning_rate):
         self.learning_rate = learning_rate
 
-    def cross_entropy_error_func(self, model, x_mini_batch, y_mini_batch):
+    def cross_entropy_error_func(self, model, x_mini_batch, y_mini_batch):  #something wrong ?
         model.w = model.w - self.learning_rate * model.grad_mini_batch(x_mini_batch, y_mini_batch)
 
 
@@ -84,7 +78,7 @@ def train(xs_train, ys_train, epochs, learning_rate):
     optimizer = SGD(learning_rate)
 
     def process(xs_train, ys_train):
-        loss = 0.0
+        loss = 0
         correct = 0
         for x_mini_batch, y_mini_batch in get_mini_batches(xs_train, ys_train):
             y_predict_mini_batch = model.forward(x_mini_batch)
@@ -114,8 +108,8 @@ def main(xs_train, ys_train, xs_test, ys_test, epochs, learning_rate):
 if __name__ == '__main__':
     logging.basicConfig(
     format="%(asctime)s %(levelname)s %(message)s", level=logging.INFO)
-    epochs = 50
-    learning_rate = 0.01
+    epochs = 20
+    learning_rate = 0.05
     """
     xs_train = 'xs_train.npy'
     ys_train = 'ys_train.npy'
