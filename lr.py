@@ -28,17 +28,12 @@ class LogisticRegression(object):
         self.w = w
 
     def grad_mini_batch(self, x_mini_batch, y_mini_batch):
-        target = np.dot(x_mini_batch, (sigmoid(np.dot((self.w).T, x_mini_batch) - y_mini_batch)))
+        target = np.dot(x_mini_batch, (sigmoid(np.dot((self.w).T, x_mini_batch)) - y_mini_batch))
         return target
 
     def forward(self, x_mini_batch):  #something wrong ?
         ys_predict = sigmoid(np.dot((self.w).T, x_mini_batch))
         a = np.dot((self.w).T, x_mini_batch)
-        print('np.dot((self.w).T, x_mini_batch): {}'.format(a))
-        print('self.w: {}'.format(self.w))
-        print('x_mini_batch: {}'.format(x_mini_batch))
-        print('ys_predict: {}'.format(ys_predict))
-        print('')
         return ys_predict
 
 
@@ -48,7 +43,7 @@ class SGD(object):
         self.learning_rate = learning_rate
 
     def cross_entropy_error_func(self, model, x_mini_batch, y_mini_batch):  #something wrong ?
-        model.w = model.w - self.learning_rate * model.grad_mini_batch(x_mini_batch, y_mini_batch)
+        model.w -= self.learning_rate * model.grad_mini_batch(x_mini_batch, y_mini_batch)
 
 
 def count_correct(y_predict_mini_batch, y_mini_batch):
@@ -72,10 +67,37 @@ def get_mini_batches(xs_train, ys_train):
     for i in range(len(ys_train)):
         yield xs_train[i], ys_train[i]
 
-
-def train(xs_train, ys_train, epochs, learning_rate):
+def divide_data(xs_train, ys_train):
     xs_train = np.load(xs_train)
     ys_train = np.load(ys_train)
+    devide_index = round(len(ys_train) / 5)
+    xs_test = [i for i in xs_train[:devide_index]]
+    ys_test = [i for i in ys_train[:devide_index]]
+    xs_train = [i for i in xs_train[devide_index:]]
+    ys_train = [i for i in ys_train[devide_index:]]
+    return xs_train, ys_train, xs_test, ys_test
+
+
+class Evaluator(object):
+
+    def __init__(self, xs_test, ys_test, model):
+        self.xs_test = xs_test
+        self.ys_test = ys_test
+        self.model = model
+
+    def evaluate(self):
+        loss = 0
+        correct = 0
+        for i in range(len(self.ys_test)):
+            ys_predict = self.model.forward(self.xs_test[i])
+            loss += culc_loss(ys_predict, self.ys_test[i])
+            correct += count_correct(ys_predict, self.ys_test[i])
+        accuracy = correct / len(self.ys_test)
+        return loss, correct
+
+
+def train(xs_train, ys_train, epochs, learning_rate):
+    xs_train, ys_train, xs_test, ys_test = divide_data(xs_train, ys_train)
     dim = xs_train[0].shape[0]
     w = np.empty((dim,), dtype=np.float16)
     initializer = GaussianInitializer()
@@ -83,19 +105,15 @@ def train(xs_train, ys_train, epochs, learning_rate):
     model = LogisticRegression(w)
     optimizer = SGD(learning_rate)
 
-    def process(xs_train, ys_train):
-        loss = 0
-        correct = 0
+    def process(xs_train, ys_train, xs_test, ys_test):
         for x_mini_batch, y_mini_batch in get_mini_batches(xs_train, ys_train):
-            y_predict_mini_batch = model.forward(x_mini_batch)
-            loss += culc_loss(y_predict_mini_batch, y_mini_batch)
-            correct += count_correct(y_predict_mini_batch, y_mini_batch)
+            eval = Evaluator(xs_test, ys_test, model)
+            loss, accuracy = eval.evaluate()
             optimizer.cross_entropy_error_func(model, x_mini_batch, y_mini_batch)
-        accuracy = correct / len(ys_train)
         return loss, accuracy
 
     for epoch in range(1, epochs + 1):
-        loss, accuracy = process(xs_train, ys_train)
+        loss, accuracy = process(xs_train, ys_train, xs_test, ys_test)
         logging.info(
             "[{}] epoch {} - #samples: {}, loss: {:.8f}, accuracy: {:.8f}"
             .format("train", epoch, len(ys_train), loss, accuracy))
@@ -110,6 +128,7 @@ if __name__ == '__main__':
     format="%(asctime)s %(levelname)s %(message)s", level=logging.INFO)
     epochs = 10
     learning_rate = 0.05
+
     xs_train = 'xs_train.npy'
     ys_train = 'ys_train.npy'
     """
