@@ -31,7 +31,7 @@ class LogisticRegression(object):
         target = np.dot(x_mini_batch, (sigmoid(np.dot((self.w).T, x_mini_batch)) - y_mini_batch))
         return target
 
-    def forward(self, x_mini_batch):  #something wrong ?
+    def forward(self, x_mini_batch):
         ys_predict = sigmoid(np.dot((self.w).T, x_mini_batch))
         a = np.dot((self.w).T, x_mini_batch)
         return ys_predict
@@ -42,7 +42,7 @@ class SGD(object):
     def __init__(self, learning_rate):
         self.learning_rate = learning_rate
 
-    def cross_entropy_error_func(self, model, x_mini_batch, y_mini_batch):  #something wrong ?
+    def cross_entropy_error_func(self, model, x_mini_batch, y_mini_batch):
         model.w -= self.learning_rate * model.grad_mini_batch(x_mini_batch, y_mini_batch)
 
 
@@ -119,7 +119,7 @@ def main(xs_train, ys_train, xs_test, ys_test, epochs, learning_rate):
 if __name__ == '__main__':
     logging.basicConfig(
     format="%(asctime)s %(levelname)s %(message)s", level=logging.INFO)
-    epochs = 10
+    epochs = 30
     learning_rate = 0.05
     xs_train = 'xs_divide_train.npy'
     ys_train = 'ys_divide_train.npy'
