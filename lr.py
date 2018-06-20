@@ -70,11 +70,20 @@ def get_mini_batches(xs_train, ys_train):
 def divide_data(xs_train, ys_train):
     xs_train = np.load(xs_train)
     ys_train = np.load(ys_train)
-    devide_index = round(len(ys_train) / 5)
+    #devide_index = round(len(ys_train) / 5)
+    devide_index = round(len(ys_train) / 2)
     xs_test = [i for i in xs_train[:devide_index]]
     ys_test = [i for i in ys_train[:devide_index]]
     xs_train = [i for i in xs_train[devide_index:]]
     ys_train = [i for i in ys_train[devide_index:]]
+    print('xs_test: {}'.format(xs_test))
+    print('ys_test: {}'.format(ys_test))
+    print('xs_train: {}'.format(xs_train))
+    print('ys_train: {}'.format(ys_train))
+    np.save('xs_divide_train.npy', xs_train)
+    np.save('ys_divide_train.npy', ys_train)
+    np.save('xs_divide_test.npy', xs_test)
+    np.save('ys_divide_test.npy', ys_test)
     return xs_train, ys_train, xs_test, ys_test
 
 
@@ -93,7 +102,7 @@ class Evaluator(object):
             loss += culc_loss(ys_predict, self.ys_test[i])
             correct += count_correct(ys_predict, self.ys_test[i])
         accuracy = correct / len(self.ys_test)
-        return loss, correct
+        return loss, accuracy
 
 
 def train(xs_train, ys_train, epochs, learning_rate):
@@ -128,10 +137,10 @@ if __name__ == '__main__':
     format="%(asctime)s %(levelname)s %(message)s", level=logging.INFO)
     epochs = 10
     learning_rate = 0.05
-    """
     xs_train = 'xs_train.npy'
     ys_train = 'ys_train.npy'
     """
     xs_train = 'xs_all_train.npy'
     ys_train = 'ys_all_train.npy'
+    """
     main(xs_train, ys_train, epochs, learning_rate)
