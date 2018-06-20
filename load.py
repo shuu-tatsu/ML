@@ -66,8 +66,36 @@ def load(dataset):
     np.save('ys_train.npy', ys_train)
     """
 
+
+def divide_data(xs_train, ys_train):
+    xs_train = np.load(xs_train)
+    ys_train = np.load(ys_train)
+    #devide_index = round(len(ys_train) / 5)
+    devide_index = round(len(ys_train) / 2)
+    xs_test = [i for i in xs_train[:devide_index]]
+    ys_test = [i for i in ys_train[:devide_index]]
+    xs_train = [i for i in xs_train[devide_index:]]
+    ys_train = [i for i in ys_train[devide_index:]]
+    print('xs_test: {}'.format(xs_test))
+    print('ys_test: {}'.format(ys_test))
+    print('xs_train: {}'.format(xs_train))
+    print('ys_train: {}'.format(ys_train))
+    np.save('xs_divide_train.npy', xs_train)
+    np.save('ys_divide_train.npy', ys_train)
+    np.save('xs_divide_test.npy', xs_test)
+    np.save('ys_divide_test.npy', ys_test)
+    return xs_train, ys_train, xs_test, ys_test
+
+
 def main(train_set, test_set):
-    load(train_set)
+    #load(train_set)
+    xs_train = 'xs_train.npy'
+    ys_train = 'ys_train.npy'
+    """
+    xs_train = 'xs_all_train.npy'
+    ys_train = 'ys_all_train.npy'
+    """
+    xs_train, ys_train, xs_test, ys_test = divide_data(xs_train, ys_train)
 
 
 if __name__ == '__main__':

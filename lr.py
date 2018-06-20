@@ -46,6 +46,24 @@ class SGD(object):
         model.w -= self.learning_rate * model.grad_mini_batch(x_mini_batch, y_mini_batch)
 
 
+class Evaluator(object):
+
+    def __init__(self, xs_test, ys_test, model):
+        self.xs_test = xs_test
+        self.ys_test = ys_test
+        self.model = model
+
+    def evaluate(self):
+        loss = 0
+        correct = 0
+        for i in range(len(self.ys_test)):
+            ys_predict = self.model.forward(self.xs_test[i])
+            loss += culc_loss(ys_predict, self.ys_test[i])
+            correct += count_correct(ys_predict, self.ys_test[i])
+        accuracy = correct / len(self.ys_test)
+        return loss, accuracy
+
+
 def count_correct(y_predict_mini_batch, y_mini_batch):
     if y_predict_mini_batch > 0.5:
         y_predict_label = 1
@@ -67,46 +85,12 @@ def get_mini_batches(xs_train, ys_train):
     for i in range(len(ys_train)):
         yield xs_train[i], ys_train[i]
 
-def divide_data(xs_train, ys_train):
+
+def train(xs_train, ys_train, xs_test, ys_test, epochs, learning_rate):
     xs_train = np.load(xs_train)
     ys_train = np.load(ys_train)
-    #devide_index = round(len(ys_train) / 5)
-    devide_index = round(len(ys_train) / 2)
-    xs_test = [i for i in xs_train[:devide_index]]
-    ys_test = [i for i in ys_train[:devide_index]]
-    xs_train = [i for i in xs_train[devide_index:]]
-    ys_train = [i for i in ys_train[devide_index:]]
-    print('xs_test: {}'.format(xs_test))
-    print('ys_test: {}'.format(ys_test))
-    print('xs_train: {}'.format(xs_train))
-    print('ys_train: {}'.format(ys_train))
-    np.save('xs_divide_train.npy', xs_train)
-    np.save('ys_divide_train.npy', ys_train)
-    np.save('xs_divide_test.npy', xs_test)
-    np.save('ys_divide_test.npy', ys_test)
-    return xs_train, ys_train, xs_test, ys_test
-
-
-class Evaluator(object):
-
-    def __init__(self, xs_test, ys_test, model):
-        self.xs_test = xs_test
-        self.ys_test = ys_test
-        self.model = model
-
-    def evaluate(self):
-        loss = 0
-        correct = 0
-        for i in range(len(self.ys_test)):
-            ys_predict = self.model.forward(self.xs_test[i])
-            loss += culc_loss(ys_predict, self.ys_test[i])
-            correct += count_correct(ys_predict, self.ys_test[i])
-        accuracy = correct / len(self.ys_test)
-        return loss, accuracy
-
-
-def train(xs_train, ys_train, epochs, learning_rate):
-    xs_train, ys_train, xs_test, ys_test = divide_data(xs_train, ys_train)
+    xs_test = np.load(xs_test)
+    ys_test = np.load(ys_test)
     dim = xs_train[0].shape[0]
     w = np.empty((dim,), dtype=np.float16)
     initializer = GaussianInitializer()
@@ -128,8 +112,8 @@ def train(xs_train, ys_train, epochs, learning_rate):
             .format("train", epoch, len(ys_train), loss, accuracy))
 
 
-def main(xs_train, ys_train, epochs, learning_rate):
-    train(xs_train, ys_train, epochs, learning_rate)
+def main(xs_train, ys_train, xs_test, ys_test, epochs, learning_rate):
+    train(xs_train, ys_train, xs_test, ys_test, epochs, learning_rate)
 
 
 if __name__ == '__main__':
@@ -137,10 +121,14 @@ if __name__ == '__main__':
     format="%(asctime)s %(levelname)s %(message)s", level=logging.INFO)
     epochs = 10
     learning_rate = 0.05
-    xs_train = 'xs_train.npy'
-    ys_train = 'ys_train.npy'
+    xs_train = 'xs_divide_train.npy'
+    ys_train = 'ys_divide_train.npy'
+    xs_test = 'xs_divide_test.npy'
+    ys_test = 'ys_divide_test.npy'
     """
-    xs_train = 'xs_all_train.npy'
-    ys_train = 'ys_all_train.npy'
+    xs_train = 'xs_all_divide_train.npy'
+    ys_train = 'ys_all_divide_train.npy'
+    xs_test = 'xs_all_divide_test.npy'
+    ys_test = 'ys_all_divide_test.npy'
     """
-    main(xs_train, ys_train, epochs, learning_rate)
+    main(xs_train, ys_train, xs_test, ys_test, epochs, learning_rate)
