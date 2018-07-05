@@ -4,6 +4,9 @@
 import sys
 sys.path.append('./')
 import load
+import numpy as np
+import datetime
+
 """
 class Net(nn.Module):
     def __init__(self):
@@ -19,39 +22,51 @@ class Net(nn.Module):
 
     def parameters(self):
 """
-def train(FILE_TRAIN):
-    train_loader = load.DataLoader(FILE_TRAIN, shuffle=False)
+
+def get_batches(train_features, train_labels, batch_size, shuffle=False):
+    xs = train_features
+    ys = train_labels
+    num_samples = len(ys)
+    indices = np.arange(num_samples)
+    if shuffle:
+        np.random.shuffle(indices)
+    offset = 0
+    while offset < num_samples:
+        x = np.take(xs, indices[offset:offset + batch_size], axis=0)
+        y = np.take(ys, indices[offset:offset + batch_size], axis=0)
+        offset += batch_size
+        yield x, y
+
+def train(FILE_TRAIN, epochs, batch_size):
+    #net = Net()
+    # コスト関数と最適化手法を定義
+    #criterion = nn.CrossEntropyLoss()
+    #optimizer = optim.SGD(net.parameters(), lr=0.01)
+    train_loader = load.DataLoader(FILE_TRAIN)
     train_features, train_labels = train_loader.load()
-    """
-    for epoch in range(3):
-        running_loss = 0.0
-        for i, data in enumerate(train_loader):
-            inputs, labels = data
-            # Variableに変換
-            inputs, labels = Variable(inputs), Variable(labels)
+    for epoch in range(epochs):
+        for minibatch_features, minibatch_labels in get_batches(train_features, train_labels, batch_size, shuffle=train):
+            inputs = minibatch_features
+            labels = minibatch_labels
+            print('{} EPOCH {} - labels {}'.format(datetime.datetime.today(), epoch, labels))
             # 勾配情報をリセット
-            optimizer.zero_grad()
+            #optimizer.zero_grad()
             # 順伝播
-            outputs = net(inputs)
+            #outputs = net(inputs)
             # コスト関数を使ってロスを計算する
-            loss = criterion(outputs, labels)
+            #loss = criterion(outputs, labels)
             # 逆伝播
-            loss.backward()
+            #loss.backward()
             # パラメータの更新
-            optimizer.step()
-            running_loss += loss.data[0]
-            if i % 5000 == 4999:
-                print('%d %d loss: %.3f' % (epoch + 1, i + 1, running_loss / 1000))
-                running_loss = 0.0
+            #optimizer.step()
     print('Finished Training')
-    """
 
 def infer(FILE_TEST):
-    test_loader = load.DataLoader(FILE_TEST, shuffle=False)
+    test_loader = load.DataLoader(FILE_TEST)
     test_features, test_labels = test_loader.load()
-    """
     correct = 0
     total = 0
+    """
     for data in test_loader:
         inputs, labels = data
         outputs = net(Variable(inputs))
@@ -67,12 +82,9 @@ def main():
     #FILE_TEST = './mnist/MNIST-csv/test.csv'
     FILE_TRAIN = './mnist/MNIST-csv/toy_train.csv'
     FILE_TEST = './mnist/MNIST-csv/toy_test.csv'
-
-    #net = Net()
-    # コスト関数と最適化手法を定義
-    #criterion = nn.CrossEntropyLoss()
-    #optimizer = optim.SGD(net.parameters(), lr=0.01)
-    train(FILE_TRAIN)
+    EPOCHS = 5
+    BATCH_SIZE = 4
+    train(FILE_TRAIN, EPOCHS, BATCH_SIZE)
     infer(FILE_TEST)
 
 if __name__ == '__main__':

@@ -4,9 +4,8 @@
 
 class DataLoader():
 
-    def __init__(self, data_path, shuffle):
+    def __init__(self, data_path):
         self.data_path = data_path
-        self.shuffle = shuffle
 
     def load(self):
         with open(self.data_path, 'r') as r:
@@ -26,10 +25,10 @@ def main():
     FILE_TRAIN = './mnist/MNIST-csv/toy_train.csv'
     FILE_TEST = './mnist/MNIST-csv/toy_test.csv'
 
-    train_loader = DataLoader(FILE_TRAIN, shuffle=False)
+    train_loader = DataLoader(FILE_TRAIN)
     train_features, train_labels = train_loader.load()
 
-    test_loader = DataLoader(FILE_TEST, shuffle=False)
+    test_loader = DataLoader(FILE_TEST)
     test_features, test_labels = test_loader.load()
 
     print(train_features, train_labels)
