@@ -7,21 +7,52 @@ import load
 import numpy as np
 import datetime
 
-"""
-class Net(nn.Module):
-    def __init__(self):
-        super().__init__()
-        self.l1 = nn.Linear(28 * 28, 50) # 入力層から隠れ層へ
-        self.l2 = nn.Linear(50, 10) # 隠れ層から出力層へ
+
+class Linear():
+    def __init__(self, input_size, target_size):
+        #l1
+        #self.w = np.zeros((100, 784))
+        #self.x = np.zeros((784, 1))
+        #self.b = np.zeros((100, 1))
+        #l2
+        #self.w = np.zeros((10, 100))
+        #self.x = np.zeros((100, 1))
+        #self.b = np.zeros((10, 1))
+
+        self.w = np.zeros((target_size, input_size))
+        self.x = np.zeros((input_size, 1))
+        self.b = np.zeros((target_size, 1))
+
+    def linear(self):
+        return np.dot(self.w, self.x) + self.b
+
+    def get_layer_parameters(self):
+        return self.w, self.x, self.b
+
+
+def sigmoid(x):
+    return 1 / (1 + np.exp(-x))
+
+def softmax(x):
+
+
+
+class NeuralNetwork(object):
+    def __init__(self, input_dim_size, hidden_dim_size, output_dim_size):
+        #input_dim_size = 784, hidden_dim_size = 100
+        self.l1 = Linear(input_dim_size, hidden_dim_size) # 入力層から隠れ層へ
+
+        #hidden_dim_size = 100, output_dim_size = 10
+        self.l2 = Linear(hidden_dim_size, output_dim_size) # 隠れ層から出力層へ
 
     def forward(self, x):
         x = x.view(-1, 28 * 28) # テンソルのリサイズ: (N, 1, 28, 28) --> (N, 784)
-        x = self.l1(x)
-        x = self.l2(x)
+        x = sigmoid(self.l1.linear(x))
+        x = softmax(self.l2.linear(x))
         return x
 
     def parameters(self):
-"""
+        return self.parameters
 
 def get_batches(train_features, train_labels, batch_size, shuffle=False):
     xs = train_features
@@ -37,22 +68,25 @@ def get_batches(train_features, train_labels, batch_size, shuffle=False):
         offset += batch_size
         yield x, y
 
-def train(FILE_TRAIN, epochs, batch_size):
-    #net = Net()
+def train(FILE_TRAIN, epochs, batch_size, input_dim_size, hidden_dim_size, output_dim_size):
+    model = NeuralNetwork(input_dim_size, hidden_dim_size, output_dim_size)
     # コスト関数と最適化手法を定義
     #criterion = nn.CrossEntropyLoss()
-    #optimizer = optim.SGD(net.parameters(), lr=0.01)
+    #optimizer = optim.SGD(model.parameters(), lr=0.01)
     train_loader = load.DataLoader(FILE_TRAIN)
     train_features, train_labels = train_loader.load()
     for epoch in range(epochs):
-        for minibatch_features, minibatch_labels in get_batches(train_features, train_labels, batch_size, shuffle=train):
+        for minibatch_features, minibatch_labels in get_batches(train_features,
+                                                                train_labels,
+                                                                batch_size,
+                                                                shuffle=train):
             inputs = minibatch_features
             labels = minibatch_labels
             print('{} EPOCH {} - labels {}'.format(datetime.datetime.today(), epoch, labels))
             # 勾配情報をリセット
             #optimizer.zero_grad()
             # 順伝播
-            #outputs = net(inputs)
+            outputs = model.forward(inputs)
             # コスト関数を使ってロスを計算する
             #loss = criterion(outputs, labels)
             # 逆伝播
@@ -84,8 +118,12 @@ def main():
     FILE_TEST = './mnist/MNIST-csv/toy_test.csv'
     EPOCHS = 5
     BATCH_SIZE = 4
-    train(FILE_TRAIN, EPOCHS, BATCH_SIZE)
+    INPUT_DIM_SIZE = 28 * 28
+    HIDDEN_DIM_SIZE = 100
+    OUTPUT_DIM_SIZE = 10
+    train(FILE_TRAIN, EPOCHS, BATCH_SIZE, INPUT_DIM_SIZE, HIDDEN_DIM_SIZE, OUTPUT_DIM_SIZE)
     infer(FILE_TEST)
 
 if __name__ == '__main__':
     main()
+
