@@ -53,6 +53,21 @@ class NeuralNetwork(object):
         return self.parameters
 
 
+class CrossEntropyLoss():
+
+    def __init__(self, output_dim_size):
+        self.output_dim_size = output_dim_size
+
+    def calculate_loss(self, minibatch_predicted_labels, minibatch_labels):
+        onehot_labels = onehot_vectorizer(minibatch_labels, self.output_dim_size)
+        loss = (-1) * np.dot(onehot_labels, np.log(minibatch_predicted_labels))
+        loss = np.sum(loss) / self.output_dim_size
+        return loss
+
+def onehot_vectorizer(x, output_dim_size):
+    onehot_vec = np.identity(output_dim_size)[x]
+    return onehot_vec
+
 def sigmoid(x):
     return 1 / (1 + np.exp(-x))
 
@@ -78,7 +93,7 @@ def get_batches(train_features, train_labels, batch_size, shuffle):
 def train(FILE_TRAIN, epochs, batch_size, input_dim_size, hidden_dim_size, output_dim_size):
     model = NeuralNetwork(batch_size, input_dim_size, hidden_dim_size, output_dim_size)
     # コスト関数と最適化手法を定義
-    #criterion = nn.CrossEntropyLoss()
+    criterion = CrossEntropyLoss(output_dim_size)
     #optimizer = optim.SGD(model.parameters(), lr=0.01)
     train_loader = load.DataLoader(FILE_TRAIN)
     train_features, train_labels = train_loader.load()
@@ -92,9 +107,9 @@ def train(FILE_TRAIN, epochs, batch_size, input_dim_size, hidden_dim_size, outpu
             #optimizer.zero_grad()
             # 順伝播
             minibatch_predicted_labels = model.forward(minibatch_features)
-            print('minibatch_predicted_labels:{}'.format(minibatch_predicted_labels))
             # コスト関数を使ってロスを計算する
-            #loss = criterion(minibatch_predicted_labels, minibatch_labels)
+            loss = criterion.calculate_loss(minibatch_predicted_labels, minibatch_labels)
+            print(loss)
             # 逆伝播
             #loss.backward()
             # パラメータの更新
