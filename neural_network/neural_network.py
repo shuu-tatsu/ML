@@ -10,19 +10,18 @@ import datetime
 
 class Linear():
 
-    def __init__(self, input_size, target_size):
+    def __init__(self, input_size, target_size, batch_size):
+        self.w = np.random.rand(target_size, input_size)
+        self.x = np.random.rand(input_size, batch_size)
+        self.b = np.random.rand(target_size, batch_size)
         #l1
         #self.w = np.zeros((100, 784))
-        #self.x = np.zeros((784, 1))
-        #self.b = np.zeros((100, 1))
+        #self.x = np.zeros((784, 4))
+        #self.b = np.zeros((100, 4))
         #l2
         #self.w = np.zeros((10, 100))
-        #self.x = np.zeros((100, 1))
-        #self.b = np.zeros((10, 1))
-
-        self.w = np.random.rand(target_size, input_size)
-        self.x = np.random.rand(input_size, 1)
-        self.b = np.random.rand(target_size, 1)
+        #self.x = np.zeros((100, 4))
+        #self.b = np.zeros((10, 4))
 
     def linear(self, x):
         self.x = x
@@ -35,23 +34,20 @@ class Linear():
 class NeuralNetwork(object):
 
     def __init__(self, batch_size, input_dim_size, hidden_dim_size, output_dim_size):
-        self.input_dim_size = input_dim_size
         self.batch_size = batch_size
+        self.input_dim_size = input_dim_size
+        self.hidden_dim_size = input_dim_size
         self.output_dim_size = output_dim_size
         #input_dim_size = 784, hidden_dim_size = 100
-        self.l1 = Linear(input_dim_size * batch_size, hidden_dim_size) # 入力層から隠れ層へ
-
+        self.l1 = Linear(input_dim_size, hidden_dim_size, batch_size) # 入力層から隠れ層へ
         #hidden_dim_size = 100, output_dim_size = 10
-        self.l2 = Linear(hidden_dim_size, output_dim_size * batch_size) # 隠れ層から出力層へ
+        self.l2 = Linear(hidden_dim_size, output_dim_size, batch_size) # 隠れ層から出力層へ
 
     def forward(self, x):
-        x = x.reshape(1, self.input_dim_size * self.batch_size).T
-        x = sigmoid(self.l1.linear(x))
-
-        x = self.l2.linear(x)
-        x = x.reshape(self.batch_size, self.output_dim_size)
-
-        return x
+        x = x.T
+        h1 = sigmoid(self.l1.linear(x))
+        y = softmax(self.l2.linear(h1))
+        return y
 
     def parameters(self):
         return self.parameters
@@ -96,7 +92,7 @@ def train(FILE_TRAIN, epochs, batch_size, input_dim_size, hidden_dim_size, outpu
             #optimizer.zero_grad()
             # 順伝播
             minibatch_predicted_labels = model.forward(minibatch_features)
-            #print('minibatch_predicted_labels:{}'.format(minibatch_predicted_labels))
+            print('minibatch_predicted_labels:{}'.format(minibatch_predicted_labels))
             # コスト関数を使ってロスを計算する
             #loss = criterion(minibatch_predicted_labels, minibatch_labels)
             # 逆伝播
