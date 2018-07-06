@@ -41,7 +41,7 @@ class NeuralNetwork(object):
         self.l1 = Linear(input_dim_size * batch_size, hidden_dim_size) # 入力層から隠れ層へ
 
         #hidden_dim_size = 100, output_dim_size = 10
-        self.l2 = Linear(hidden_dim_size, output_dim_size) # 隠れ層から出力層へ
+        self.l2 = Linear(hidden_dim_size, output_dim_size * batch_size) # 隠れ層から出力層へ
 
     def forward(self, x):
         x = x.reshape((1, self.input_dim_size * self.batch_size)).T
