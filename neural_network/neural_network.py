@@ -23,7 +23,13 @@ class Linear():
         self.x = np.zeros((input_size, 1))
         self.b = np.zeros((target_size, 1))
 
-    def linear(self):
+    def linear(self, x):
+        print(self.x)
+        print(len(self.x))
+        print(x)
+        print(len(x))
+
+        self.x = x
         return np.dot(self.w, self.x) + self.b
 
     def get_layer_parameters(self):
@@ -34,19 +40,21 @@ def sigmoid(x):
     return 1 / (1 + np.exp(-x))
 
 def softmax(x):
-
+    pass
 
 
 class NeuralNetwork(object):
-    def __init__(self, input_dim_size, hidden_dim_size, output_dim_size):
+    def __init__(self, batch_size, input_dim_size, hidden_dim_size, output_dim_size):
+        self.input_dim_size = input_dim_size
+        self.batch_size = batch_size
         #input_dim_size = 784, hidden_dim_size = 100
-        self.l1 = Linear(input_dim_size, hidden_dim_size) # 入力層から隠れ層へ
+        self.l1 = Linear(input_dim_size * batch_size, hidden_dim_size) # 入力層から隠れ層へ
 
         #hidden_dim_size = 100, output_dim_size = 10
         self.l2 = Linear(hidden_dim_size, output_dim_size) # 隠れ層から出力層へ
 
     def forward(self, x):
-        x = x.view(-1, 28 * 28) # テンソルのリサイズ: (N, 1, 28, 28) --> (N, 784)
+        x = x.reshape((1, self.input_dim_size * self.batch_size)).T
         x = sigmoid(self.l1.linear(x))
         x = softmax(self.l2.linear(x))
         return x
@@ -54,7 +62,7 @@ class NeuralNetwork(object):
     def parameters(self):
         return self.parameters
 
-def get_batches(train_features, train_labels, batch_size, shuffle=False):
+def get_batches(train_features, train_labels, batch_size, shuffle):
     xs = train_features
     ys = train_labels
     num_samples = len(ys)
@@ -69,7 +77,7 @@ def get_batches(train_features, train_labels, batch_size, shuffle=False):
         yield x, y
 
 def train(FILE_TRAIN, epochs, batch_size, input_dim_size, hidden_dim_size, output_dim_size):
-    model = NeuralNetwork(input_dim_size, hidden_dim_size, output_dim_size)
+    model = NeuralNetwork(batch_size, input_dim_size, hidden_dim_size, output_dim_size)
     # コスト関数と最適化手法を定義
     #criterion = nn.CrossEntropyLoss()
     #optimizer = optim.SGD(model.parameters(), lr=0.01)
@@ -79,16 +87,14 @@ def train(FILE_TRAIN, epochs, batch_size, input_dim_size, hidden_dim_size, outpu
         for minibatch_features, minibatch_labels in get_batches(train_features,
                                                                 train_labels,
                                                                 batch_size,
-                                                                shuffle=train):
-            inputs = minibatch_features
-            labels = minibatch_labels
-            print('{} EPOCH {} - labels {}'.format(datetime.datetime.today(), epoch, labels))
+                                                                shuffle=True):
+            print('{} EPOCH {} - labels {}'.format(datetime.datetime.today(), epoch, minibatch_labels))
             # 勾配情報をリセット
             #optimizer.zero_grad()
             # 順伝播
-            outputs = model.forward(inputs)
+            minibatch_predicted_labels = model.forward(minibatch_features)
             # コスト関数を使ってロスを計算する
-            #loss = criterion(outputs, labels)
+            #loss = criterion(minibatch_predicted_labels, minibatch_labels)
             # 逆伝播
             #loss.backward()
             # パラメータの更新
@@ -126,4 +132,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-

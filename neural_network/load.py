@@ -16,7 +16,9 @@ class DataLoader():
 
 def read_data(lines):
     features = [line[:-1].split(',')[1:] for line in lines]
+    features = [[int(pic) for pic in feature] for feature in features]
     labels = [line.split(',')[0] for line in lines]
+    labels = [int(label) for label in labels]
     return features, labels
 
 def main():
