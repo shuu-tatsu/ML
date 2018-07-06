@@ -24,10 +24,6 @@ class Linear():
         self.b = np.zeros((target_size, 1))
 
     def linear(self, x):
-        print('x:{}'.format(x))
-        print('len(x):{}'.format(len(x)))
-        print('')
-
         self.x = x
         return np.dot(self.w, self.x) + self.b
 
@@ -54,9 +50,7 @@ class NeuralNetwork(object):
 
     def forward(self, x):
         x = x.reshape((1, self.input_dim_size * self.batch_size)).T
-        print('x = sigmoid(self.l1.linear(x))')
         x = sigmoid(self.l1.linear(x))
-        print('x = softmax(self.l2.linear(x))')
         x = softmax(self.l2.linear(x))
         return x
 
@@ -94,6 +88,7 @@ def train(FILE_TRAIN, epochs, batch_size, input_dim_size, hidden_dim_size, outpu
             #optimizer.zero_grad()
             # 順伝播
             minibatch_predicted_labels = model.forward(minibatch_features)
+            print('minibatch_predicted_labels:{}'.format(minibatch_predicted_labels))
             # コスト関数を使ってロスを計算する
             #loss = criterion(minibatch_predicted_labels, minibatch_labels)
             # 逆伝播
