@@ -35,7 +35,9 @@ def sigmoid(x):
     return 1 / (1 + np.exp(-x))
 
 def softmax(x):
-    return x
+    exp_x = np.exp(x)
+    y = exp_x / np.sum(np.exp(x), axis=0, keepdims=True)
+    return y
 
 
 class NeuralNetwork(object):
