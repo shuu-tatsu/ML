@@ -24,10 +24,9 @@ class Linear():
         self.b = np.zeros((target_size, 1))
 
     def linear(self, x):
-        print(self.x)
-        print(len(self.x))
-        print(x)
-        print(len(x))
+        print('x:{}'.format(x))
+        print('len(x):{}'.format(len(x)))
+        print('')
 
         self.x = x
         return np.dot(self.w, self.x) + self.b
@@ -40,7 +39,7 @@ def sigmoid(x):
     return 1 / (1 + np.exp(-x))
 
 def softmax(x):
-    pass
+    return x
 
 
 class NeuralNetwork(object):
@@ -55,7 +54,9 @@ class NeuralNetwork(object):
 
     def forward(self, x):
         x = x.reshape((1, self.input_dim_size * self.batch_size)).T
+        print('x = sigmoid(self.l1.linear(x))')
         x = sigmoid(self.l1.linear(x))
+        print('x = softmax(self.l2.linear(x))')
         x = softmax(self.l2.linear(x))
         return x
 
