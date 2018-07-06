@@ -9,6 +9,7 @@ import datetime
 
 
 class Linear():
+
     def __init__(self, input_size, target_size):
         #l1
         #self.w = np.zeros((100, 784))
@@ -31,16 +32,8 @@ class Linear():
         return self.w, self.x, self.b
 
 
-def sigmoid(x):
-    return 1 / (1 + np.exp(-x))
-
-def softmax(x):
-    exp_x = np.exp(x)
-    y = exp_x / np.sum(np.exp(x), axis=0, keepdims=True)
-    return y
-
-
 class NeuralNetwork(object):
+
     def __init__(self, batch_size, input_dim_size, hidden_dim_size, output_dim_size):
         self.input_dim_size = input_dim_size
         self.batch_size = batch_size
@@ -58,6 +51,15 @@ class NeuralNetwork(object):
 
     def parameters(self):
         return self.parameters
+
+
+def sigmoid(x):
+    return 1 / (1 + np.exp(-x))
+
+def softmax(x):
+    exp_x = np.exp(x)
+    y = exp_x / np.sum(np.exp(x), axis=0, keepdims=True)
+    return y
 
 def get_batches(train_features, train_labels, batch_size, shuffle):
     xs = train_features
