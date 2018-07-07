@@ -4,7 +4,7 @@
 import sys
 sys.path.append('./')
 import load
-import inference
+import inference_test
 import numpy as np
 import datetime
 
@@ -16,14 +16,18 @@ class Linear(object):
                  target_size,
                  batch_size):
         self.w = np.random.rand(target_size, input_size)
-        self.x = np.random.rand(input_size, batch_size)
         self.b = np.random.rand(target_size, 1)
         self.batch_size = batch_size
 
     def linear(self, x):
-        self.x = x
         ones = np.ones((self.batch_size, 1))
-        return np.dot(self.w, self.x) + np.dot(self.b, ones.T)
+        return np.dot(self.w, x) + np.dot(self.b, ones.T)
+
+    def linear_inference_z1(self, x):
+        return ((np.dot(self.w, x)) + self.b.T).T
+
+    def linear_inference_y(self, x):
+        return np.dot(self.w, x) + self.b
 
     def get_layer_parameters(self):
         return self.w, self.b
@@ -56,6 +60,13 @@ class NeuralNetwork(object):
         z1 = sigmoid(self.l1.linear(x))
         y = softmax(self.l2.linear(z1))
         return z1, y
+
+    def forward_inference(self, x):
+        x = x.T
+        z1 = sigmoid(self.l1.linear_inference_z1(x))
+        y = softmax(self.l2.linear_inference_y(z1))
+        return y
+
 
     def backward(self, x, z1, y, d):
         ones = np.ones((self.batch_size, 1))
@@ -139,6 +150,7 @@ def get_batches(train_features,
 
 
 def train(file_train,
+          file_test,
           epochs,
           batch_size,
           input_dim_size,
@@ -170,6 +182,9 @@ def train(file_train,
                                    d=minibatch_labels)
             # パラメータの更新
             optimizer.update(grads)
+        inference_test.infer(file_test=file_test,
+                             model_trained=model)
+
     print('Finished Training')
     return model
 
@@ -187,6 +202,7 @@ def main():
     LEARNING_RATE = 0.01
 
     model_trained = train(file_train=FILE_TRAIN,
+                          file_test=FILE_TEST,
                           epochs=EPOCHS,
                           batch_size=BATCH_SIZE,
                           input_dim_size=INPUT_DIM_SIZE,
@@ -194,7 +210,8 @@ def main():
                           output_dim_size=OUTPUT_DIM_SIZE,
                           learning_rate=LEARNING_RATE)
 
-    inference.infer(file_test=FILE_TEST, model_trained)
+    #inference_test.infer(file_test=FILE_TEST,
+    #                model_trained=model_trained)
 
 
 if __name__ == '__main__':
