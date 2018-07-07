@@ -21,6 +21,7 @@ def read_data(lines):
     labels = [int(label) for label in labels]
     return features, labels
 
+
 def main():
     #FILE_TRAIN = './mnist/MNIST-csv/train.csv'
     #FILE_TEST = './mnist/MNIST-csv/test.csv'
@@ -34,6 +35,7 @@ def main():
     test_features, test_labels = test_loader.load()
 
     print(train_features, train_labels)
+
 
 if __name__ == '__main__':
     main()
