@@ -27,10 +27,10 @@ def main():
     FILE_TRAIN = './mnist/MNIST-csv/toy_train.csv'
     FILE_TEST = './mnist/MNIST-csv/toy_test.csv'
 
-    train_loader = DataLoader(FILE_TRAIN)
+    train_loader = DataLoader(data_path=FILE_TRAIN)
     train_features, train_labels = train_loader.load()
 
-    test_loader = DataLoader(FILE_TEST)
+    test_loader = DataLoader(data_path=FILE_TEST)
     test_features, test_labels = test_loader.load()
 
     print(train_features, train_labels)
