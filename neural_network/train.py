@@ -17,11 +17,13 @@ class Linear(object):
                  batch_size):
         self.w = np.random.rand(target_size, input_size)
         self.x = np.random.rand(input_size, batch_size)
-        self.b = np.random.rand(target_size, batch_size)
+        self.b = np.random.rand(target_size, 1)
+        self.batch_size = batch_size
 
     def linear(self, x):
         self.x = x
-        return np.dot(self.w, self.x) + self.b
+        ones = np.ones((self.batch_size, 1))
+        return np.dot(self.w, self.x) + np.dot(self.b, ones.T)
 
     def get_layer_parameters(self):
         return self.w, self.b
@@ -56,14 +58,18 @@ class NeuralNetwork(object):
         return z1, y
 
     def backward(self, x, z1, y, d):
+        ones = np.ones((self.batch_size, 1))
+
         delta2 = y - d
         grad_w2 = np.dot(delta2, z1.T) / self.batch_size
-        grad_b2 = delta2 / self.batch_size
+        grad_b2 = np.dot(delta2, ones) / self.batch_size
 
         sigmoid_dash = z1 * (1 - z1)
+
         delta1 = sigmoid_dash * np.dot(self.l2_w.T, delta2)
         grad_w1 = np.dot(delta1, x) / self.batch_size
-        grad_b1 = delta1 / self.batch_size
+        grad_b1 = np.dot(delta1, ones) / self.batch_size
+
         grads = [grad_w1, grad_b1, grad_w2, grad_b2]
         return grads
 
@@ -165,6 +171,7 @@ def train(file_train,
             # パラメータの更新
             optimizer.update(grads)
     print('Finished Training')
+    return model
 
 
 def main():
@@ -179,15 +186,15 @@ def main():
     OUTPUT_DIM_SIZE = 10
     LEARNING_RATE = 0.01
 
-    train(file_train=FILE_TRAIN,
-          epochs=EPOCHS,
-          batch_size=BATCH_SIZE,
-          input_dim_size=INPUT_DIM_SIZE,
-          hidden_dim_size=HIDDEN_DIM_SIZE,
-          output_dim_size=OUTPUT_DIM_SIZE,
-          learning_rate=LEARNING_RATE)
+    model_trained = train(file_train=FILE_TRAIN,
+                          epochs=EPOCHS,
+                          batch_size=BATCH_SIZE,
+                          input_dim_size=INPUT_DIM_SIZE,
+                          hidden_dim_size=HIDDEN_DIM_SIZE,
+                          output_dim_size=OUTPUT_DIM_SIZE,
+                          learning_rate=LEARNING_RATE)
 
-    inference.infer(file_test=FILE_TEST)
+    inference.infer(file_test=FILE_TEST, model_trained)
 
 
 if __name__ == '__main__':
