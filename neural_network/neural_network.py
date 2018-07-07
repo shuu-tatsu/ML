@@ -49,12 +49,12 @@ class NeuralNetwork(object):
         self.l1 = Linear(input_dim_size,
                          hidden_dim_size,
                          batch_size)
-        self.l1_w, self.l1_b = self.l1.get_layer_parameters
+        self.l1_w, self.l1_b = self.l1.get_layer_parameters()
         # 隠れ層から出力層へ
         self.l2 = Linear(hidden_dim_size,
                          output_dim_size,
                          batch_size)
-        self.l2_w, self.l2_b = self.l2.get_layer_parameters
+        self.l2_w, self.l2_b = self.l2.get_layer_parameters()
 
     def forward(self, x):
         x = x.T
@@ -165,7 +165,7 @@ def train(file_train,
                                                                 shuffle=True):
             print('{} EPOCH {} - labels {}'.format(datetime.datetime.today(), epoch, minibatch_labels))
             # 順伝播
-            z1, minibatch_features = model.forward(minibatch_features)
+            z1, minibatch_predicted_labels = model.forward(minibatch_features)
             # コスト関数を使ってロスを計算する
             #loss = cross_entropy.calculate_loss(minibatch_predicted_labels, minibatch_labels)
             # 逆伝播
