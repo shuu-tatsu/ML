@@ -8,7 +8,7 @@ import numpy as np
 import datetime
 
 
-class Linear():
+class Linear(object):
 
     def __init__(self,
                  input_size,
@@ -56,13 +56,31 @@ class NeuralNetwork(object):
         y = softmax(self.l2.linear(h1))
         return y
 
+    def backward(self, loss):
+        self.loss = loss
+
+        return grad
+
     def parameters(self):
         self.l1_param = self.l1.get_layer_parameters
         self.l2_param = self.l2.get_layer_parameters
         return self.l1_param, self.l2_param
 
 
-class CrossEntropyLoss():
+class SGD(object):
+
+    def __init__(self, parameters, learning_rate):
+        self.parameters = parameters
+        self.learning_rate = learning_rate
+
+    def update(self, grads):
+        for key in grads.keys():
+            self.parameters[key] -= self.learning_rate * grads[key] \
+                + self.weight_decay_rate * self.parameters[key]
+
+
+
+class CrossEntropyLoss(object):
 
     def __init__(self, output_dim_size):
         self.output_dim_size = output_dim_size
@@ -75,17 +93,21 @@ class CrossEntropyLoss():
         loss = np.sum(loss) / self.output_dim_size
         return loss
 
+
 def onehot_vectorizer(x, output_dim_size):
     onehot_vec = np.identity(output_dim_size)[x]
     return onehot_vec
 
+
 def sigmoid(x):
     return 1 / (1 + np.exp(-x))
+
 
 def softmax(x):
     exp_x = np.exp(x)
     y = exp_x / np.sum(np.exp(x), axis=0, keepdims=True)
     return y
+
 
 def get_batches(train_features,
                 train_labels,
@@ -104,6 +126,7 @@ def get_batches(train_features,
         offset += batch_size
         yield x, y
 
+
 def train(file_train,
           epochs,
           batch_size,
@@ -113,7 +136,7 @@ def train(file_train,
           learning_rate):
     model = NeuralNetwork(batch_size, input_dim_size, hidden_dim_size, output_dim_size)
     # コスト関数と最適化手法を定義
-    criterion = CrossEntropyLoss(output_dim_size)
+    cross_entropy = CrossEntropyLoss(output_dim_size)
     #optimizer = SGD(model.parameters(), learning_rate)
     train_loader = load.DataLoader(file_train)
     train_features, train_labels = train_loader.load()
@@ -123,18 +146,17 @@ def train(file_train,
                                                                 batch_size,
                                                                 shuffle=True):
             print('{} EPOCH {} - labels {}'.format(datetime.datetime.today(), epoch, minibatch_labels))
-            # 勾配情報をリセット
-            #optimizer.zero_grad()
             # 順伝播
             minibatch_predicted_labels = model.forward(minibatch_features)
             # コスト関数を使ってロスを計算する
-            loss = criterion.calculate_loss(minibatch_predicted_labels, minibatch_labels)
+            loss = cross_entropy.calculate_loss(minibatch_predicted_labels, minibatch_labels)
             print(loss)
             # 逆伝播
-            #loss.backward()
+            #grads = model.backward(loss)
             # パラメータの更新
-            #optimizer.step()
+            #optimizer.update(grads)
     print('Finished Training')
+
 
 def infer(file_test):
     test_loader = load.DataLoader(file_test)
@@ -152,6 +174,7 @@ def infer(file_test):
     print('Accuracy %d / %d = %f' % (correct, total, correct / total))
     """
 
+
 def main():
     #FILE_TRAIN = './mnist/MNIST-csv/train.csv'
     #FILE_TEST = './mnist/MNIST-csv/test.csv'
@@ -163,14 +186,17 @@ def main():
     HIDDEN_DIM_SIZE = 100
     OUTPUT_DIM_SIZE = 10
     LEARNING_RATE = 0.01
-    train(FILE_TRAIN,
-          EPOCHS,
-          BATCH_SIZE,
-          INPUT_DIM_SIZE,
-          HIDDEN_DIM_SIZE,
-          OUTPUT_DIM_SIZE,
-          LEARNING_RATE)
-    infer(FILE_TEST)
+
+    train(file_train=FILE_TRAIN,
+          epochs=EPOCHS,
+          batch_size=BATCH_SIZE,
+          input_dim_size=INPUT_DIM_SIZE,
+          hidden_dim_size=HIDDEN_DIM_SIZE,
+          output_dim_size=OUTPUT_DIM_SIZE,
+          learning_rate=LEARNING_RATE)
+
+    infer(file_test=FILE_TEST)
+
 
 if __name__ == '__main__':
     main()
