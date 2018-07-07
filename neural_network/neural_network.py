@@ -10,7 +10,10 @@ import datetime
 
 class Linear():
 
-    def __init__(self, input_size, target_size, batch_size):
+    def __init__(self,
+                 input_size,
+                 target_size,
+                 batch_size):
         self.w = np.random.rand(target_size, input_size)
         self.x = np.random.rand(input_size, batch_size)
         self.b = np.random.rand(target_size, batch_size)
@@ -33,7 +36,11 @@ class Linear():
 
 class NeuralNetwork(object):
 
-    def __init__(self, batch_size, input_dim_size, hidden_dim_size, output_dim_size):
+    def __init__(self,
+                 batch_size,
+                 input_dim_size,
+                 hidden_dim_size,
+                 output_dim_size):
         self.batch_size = batch_size
         self.input_dim_size = input_dim_size
         self.hidden_dim_size = input_dim_size
@@ -50,7 +57,9 @@ class NeuralNetwork(object):
         return y
 
     def parameters(self):
-        return self.parameters
+        self.l1_param = self.l1.get_layer_parameters
+        self.l2_param = self.l2.get_layer_parameters
+        return self.l1_param, self.l2_param
 
 
 class CrossEntropyLoss():
@@ -58,7 +67,9 @@ class CrossEntropyLoss():
     def __init__(self, output_dim_size):
         self.output_dim_size = output_dim_size
 
-    def calculate_loss(self, minibatch_predicted_labels, minibatch_labels):
+    def calculate_loss(self,
+                       minibatch_predicted_labels,
+                       minibatch_labels):
         onehot_labels = onehot_vectorizer(minibatch_labels, self.output_dim_size)
         loss = (-1) * np.dot(onehot_labels, np.log(minibatch_predicted_labels))
         loss = np.sum(loss) / self.output_dim_size
@@ -76,7 +87,10 @@ def softmax(x):
     y = exp_x / np.sum(np.exp(x), axis=0, keepdims=True)
     return y
 
-def get_batches(train_features, train_labels, batch_size, shuffle):
+def get_batches(train_features,
+                train_labels,
+                batch_size,
+                shuffle):
     xs = train_features
     ys = train_labels
     num_samples = len(ys)
@@ -90,12 +104,18 @@ def get_batches(train_features, train_labels, batch_size, shuffle):
         offset += batch_size
         yield x, y
 
-def train(FILE_TRAIN, epochs, batch_size, input_dim_size, hidden_dim_size, output_dim_size):
+def train(file_train,
+          epochs,
+          batch_size,
+          input_dim_size,
+          hidden_dim_size,
+          output_dim_size,
+          learning_rate):
     model = NeuralNetwork(batch_size, input_dim_size, hidden_dim_size, output_dim_size)
     # コスト関数と最適化手法を定義
     criterion = CrossEntropyLoss(output_dim_size)
-    #optimizer = optim.SGD(model.parameters(), lr=0.01)
-    train_loader = load.DataLoader(FILE_TRAIN)
+    #optimizer = SGD(model.parameters(), learning_rate)
+    train_loader = load.DataLoader(file_train)
     train_features, train_labels = train_loader.load()
     for epoch in range(epochs):
         for minibatch_features, minibatch_labels in get_batches(train_features,
@@ -116,8 +136,8 @@ def train(FILE_TRAIN, epochs, batch_size, input_dim_size, hidden_dim_size, outpu
             #optimizer.step()
     print('Finished Training')
 
-def infer(FILE_TEST):
-    test_loader = load.DataLoader(FILE_TEST)
+def infer(file_test):
+    test_loader = load.DataLoader(file_test)
     test_features, test_labels = test_loader.load()
     correct = 0
     total = 0
@@ -142,7 +162,14 @@ def main():
     INPUT_DIM_SIZE = 28 * 28
     HIDDEN_DIM_SIZE = 100
     OUTPUT_DIM_SIZE = 10
-    train(FILE_TRAIN, EPOCHS, BATCH_SIZE, INPUT_DIM_SIZE, HIDDEN_DIM_SIZE, OUTPUT_DIM_SIZE)
+    LEARNING_RATE = 0.01
+    train(FILE_TRAIN,
+          EPOCHS,
+          BATCH_SIZE,
+          INPUT_DIM_SIZE,
+          HIDDEN_DIM_SIZE,
+          OUTPUT_DIM_SIZE,
+          LEARNING_RATE)
     infer(FILE_TEST)
 
 if __name__ == '__main__':
