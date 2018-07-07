@@ -203,7 +203,7 @@ def main():
           output_dim_size=OUTPUT_DIM_SIZE,
           learning_rate=LEARNING_RATE)
 
-    infer(file_test=FILE_TEST)
+    #infer(file_test=FILE_TEST)
 
 
 if __name__ == '__main__':
