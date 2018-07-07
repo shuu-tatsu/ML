@@ -77,10 +77,7 @@ class SGD(object):
         self.learning_rate = learning_rate
 
     def update(self, grads):
-        grad_w1 = grads[0]
-        grad_b1 = grads[1]
-        grad_w2 = grads[2]
-        grad_b2 = grads[3]
+        grad_w1, grad_b1, grad_w2, grad_b2 = grads
         self.l2_w -= self.learning_rate * grad_w2
         self.l2_b -= self.learning_rate * grad_b2
         self.l1_w -= self.learning_rate * grad_w1
@@ -145,8 +142,7 @@ def train(file_train,
                           input_dim_size,
                           hidden_dim_size,
                           output_dim_size)
-    # コスト関数と最適化手法を定義
-    #cross_entropy = CrossEntropyLoss(output_dim_size)
+    cross_entropy = CrossEntropyLoss(output_dim_size)
     optimizer = SGD(model, learning_rate)
     train_loader = load.DataLoader(file_train)
     train_features, train_labels = train_loader.load()
@@ -155,11 +151,11 @@ def train(file_train,
                                                                 train_labels,
                                                                 batch_size,
                                                                 shuffle=True):
-            print('{} EPOCH {} - labels {}'.format(datetime.datetime.today(), epoch, minibatch_labels))
             # 順伝播
             z1, minibatch_predicted_labels = model.forward(minibatch_features)
-            # コスト関数を使ってロスを計算する
-            #loss = cross_entropy.calculate_loss(minibatch_predicted_labels, minibatch_labels)
+            # 評価用にLOSSを算出
+            loss = cross_entropy.calculate_loss(minibatch_predicted_labels, minibatch_labels)
+            print('[{}] EPOCH {} - LOSS {:.8f}'.format(datetime.datetime.today(), epoch, loss))
             # 逆伝播
             grads = model.backward(x=minibatch_features,
                                    z1=z1,
