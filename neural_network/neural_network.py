@@ -17,14 +17,6 @@ class Linear(object):
         self.w = np.random.rand(target_size, input_size)
         self.x = np.random.rand(input_size, batch_size)
         self.b = np.random.rand(target_size, batch_size)
-        #l1
-        #self.w = np.zeros((100, 784))
-        #self.x = np.zeros((784, 4))
-        #self.b = np.zeros((100, 4))
-        #l2
-        #self.w = np.zeros((10, 100))
-        #self.x = np.zeros((100, 4))
-        #self.b = np.zeros((10, 4))
 
     def linear(self, x):
         self.x = x
@@ -64,13 +56,13 @@ class NeuralNetwork(object):
 
     def backward(self, x, z1, y, d):
         delta2 = y - d
-        grad_w2 = np.dot(z1.T, delta2)
-        grad_b2 = delta2
+        grad_w2 = np.dot(delta2, z1.T) / self.batch_size
+        grad_b2 = delta2 / self.batch_size
 
         sigmoid_dash = z1 * (1 - z1)
-        delta1 = np.dot(delta2, w2.T) * sigmoid_dash
-        grad_w1 = np.dot(x.T, delta1)
-        grad_b1 = delta1
+        delta1 = sigmoid_dash * np.dot(self.l2_w.T, delta2)
+        grad_w1 = np.dot(delta1, x) / self.batch_size
+        grad_b1 = delta1 / self.batch_size
         grads = [grad_w1, grad_b1, grad_w2, grad_b2]
         return grads
 
@@ -89,10 +81,10 @@ class SGD(object):
         grad_b1 = grads[1]
         grad_w2 = grads[2]
         grad_b2 = grads[3]
-        self.l2_w -= learning_rate * grad_w2
-        self.l2_b -= learning_rate * grad_b2
-        self.l1_w -= learning_rate * grad_w1
-        self.l1_b -= learning_rate * grad_b1
+        self.l2_w -= self.learning_rate * grad_w2
+        self.l2_b -= self.learning_rate * grad_b2
+        self.l1_w -= self.learning_rate * grad_w1
+        self.l1_b -= self.learning_rate * grad_b1
 
 
 class CrossEntropyLoss(object):
