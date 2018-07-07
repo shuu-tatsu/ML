@@ -31,7 +31,7 @@ class Linear(object):
         return np.dot(self.w, self.x) + self.b
 
     def get_layer_parameters(self):
-        return self.w, self.x, self.b
+        return self.w, self.b
 
 
 class NeuralNetwork(object):
@@ -45,39 +45,54 @@ class NeuralNetwork(object):
         self.input_dim_size = input_dim_size
         self.hidden_dim_size = input_dim_size
         self.output_dim_size = output_dim_size
-        #input_dim_size = 784, hidden_dim_size = 100
-        self.l1 = Linear(input_dim_size, hidden_dim_size, batch_size) # 入力層から隠れ層へ
-        #hidden_dim_size = 100, output_dim_size = 10
-        self.l2 = Linear(hidden_dim_size, output_dim_size, batch_size) # 隠れ層から出力層へ
+        # 入力層から隠れ層へ
+        self.l1 = Linear(input_dim_size,
+                         hidden_dim_size,
+                         batch_size)
+        self.l1_w, self.l1_b = self.l1.get_layer_parameters
+        # 隠れ層から出力層へ
+        self.l2 = Linear(hidden_dim_size,
+                         output_dim_size,
+                         batch_size)
+        self.l2_w, self.l2_b = self.l2.get_layer_parameters
 
     def forward(self, x):
         x = x.T
-        h1 = sigmoid(self.l1.linear(x))
-        y = softmax(self.l2.linear(h1))
-        return y
+        z1 = sigmoid(self.l1.linear(x))
+        y = softmax(self.l2.linear(z1))
+        return z1, y
 
-    def backward(self, loss):
-        self.loss = loss
+    def backward(self, x, z1, y, d):
+        delta2 = y - d
+        grad_w2 = np.dot(z1.T, delta2)
+        grad_b2 = delta2
 
-        return grad
-
-    def parameters(self):
-        self.l1_param = self.l1.get_layer_parameters
-        self.l2_param = self.l2.get_layer_parameters
-        return self.l1_param, self.l2_param
+        sigmoid_dash = z1 * (1 - z1)
+        delta1 = np.dot(delta2, w2.T) * sigmoid_dash
+        grad_w1 = np.dot(x.T, delta1)
+        grad_b1 = delta1
+        grads = [grad_w1, grad_b1, grad_w2, grad_b2]
+        return grads
 
 
 class SGD(object):
 
-    def __init__(self, parameters, learning_rate):
-        self.parameters = parameters
+    def __init__(self, model, learning_rate):
+        self.l1_w = model.l1_w
+        self.l1_b = model.l1_b
+        self.l2_w = model.l2_w
+        self.l2_b = model.l2_b
         self.learning_rate = learning_rate
 
     def update(self, grads):
-        for key in grads.keys():
-            self.parameters[key] -= self.learning_rate * grads[key] \
-                + self.weight_decay_rate * self.parameters[key]
-
+        grad_w1 = grads[0]
+        grad_b1 = grads[1]
+        grad_w2 = grads[2]
+        grad_b2 = grads[3]
+        self.l2_w -= learning_rate * grad_w2
+        self.l2_b -= learning_rate * grad_b2
+        self.l1_w -= learning_rate * grad_w1
+        self.l1_b -= learning_rate * grad_b1
 
 
 class CrossEntropyLoss(object):
@@ -134,10 +149,13 @@ def train(file_train,
           hidden_dim_size,
           output_dim_size,
           learning_rate):
-    model = NeuralNetwork(batch_size, input_dim_size, hidden_dim_size, output_dim_size)
+    model = NeuralNetwork(batch_size,
+                          input_dim_size,
+                          hidden_dim_size,
+                          output_dim_size)
     # コスト関数と最適化手法を定義
-    cross_entropy = CrossEntropyLoss(output_dim_size)
-    #optimizer = SGD(model.parameters(), learning_rate)
+    #cross_entropy = CrossEntropyLoss(output_dim_size)
+    optimizer = SGD(model, learning_rate)
     train_loader = load.DataLoader(file_train)
     train_features, train_labels = train_loader.load()
     for epoch in range(epochs):
@@ -147,14 +165,16 @@ def train(file_train,
                                                                 shuffle=True):
             print('{} EPOCH {} - labels {}'.format(datetime.datetime.today(), epoch, minibatch_labels))
             # 順伝播
-            minibatch_predicted_labels = model.forward(minibatch_features)
+            z1, minibatch_features = model.forward(minibatch_features)
             # コスト関数を使ってロスを計算する
-            loss = cross_entropy.calculate_loss(minibatch_predicted_labels, minibatch_labels)
-            print(loss)
+            #loss = cross_entropy.calculate_loss(minibatch_predicted_labels, minibatch_labels)
             # 逆伝播
-            #grads = model.backward(loss)
+            grads = model.backward(x=minibatch_features,
+                                   z1=z1,
+                                   y=minibatch_predicted_labels,
+                                   d=minibatch_labels)
             # パラメータの更新
-            #optimizer.update(grads)
+            optimizer.update(grads)
     print('Finished Training')
 
 
