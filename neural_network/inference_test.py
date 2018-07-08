@@ -19,7 +19,8 @@ def infer(file_test, model_trained):
         _, predicted_tensor = model_trained.forward(feature_reshaped)
         #print('predicted_tensor:{}'.format(predicted_tensor))
         predicted_label = np.argmax(predicted_tensor)
-        #print('predicted_label:{}'.format(predicted_label))
+        #print('Predicted_label:{} Correct_label:{}'.format(predicted_label, label))
         if predicted_label == label:
             correct += 1
-    #print('Accuracy %d / %d = %f' % (correct, total, correct / total))
+    accuracy = correct / total
+    return accuracy

@@ -55,7 +55,6 @@ class NeuralNetwork(object):
 
     def forward(self, x):
         z1 = utils.sigmoid(self.l1.linear(x))
-        print('z1.shape:{}'.format(z1.shape))
         y = utils.softmax(self.l2.linear(z1))
         return z1, y
 
@@ -102,7 +101,7 @@ def train(file_train,
             z1, minibatch_predicted_labels = model.forward(minibatch_features_reshaped)
             # 評価用にLOSSを算出
             loss = cross_entropy.calculate_loss(minibatch_predicted_labels, minibatch_labels)
-            print('[{}] EPOCH {} - LOSS {:.8f}'.format(datetime.datetime.today(), epoch, loss))
+            #print('[{}] EPOCH {} - LOSS {:.8f}'.format(datetime.datetime.today(), epoch, loss))
             # 逆伝播
             grads = model.backward(x=minibatch_features,
                                    z1=z1,
@@ -110,8 +109,12 @@ def train(file_train,
                                    d=minibatch_labels)
             # パラメータの更新
             optimizer.update(grads)
-        inference_test.infer(file_test=file_test,
-                             model_trained=model)
+
+        # テストデータによる Inference と評価
+        accuracy = inference_test.infer(file_test=file_test,
+                                        model_trained=model)
+        print('[{}] EPOCH {} Accuracy:{:.8f}'.format(datetime.datetime.today(), epoch, accuracy))
+
 
     print('Finished Training')
     return model
@@ -120,8 +123,8 @@ def train(file_train,
 def main():
     #FILE_TRAIN = './mnist/MNIST-csv/train.csv'
     #FILE_TEST = './mnist/MNIST-csv/test.csv'
-    FILE_TRAIN = './mnist/MNIST-csv/toy.train'
-    FILE_TEST = './mnist/MNIST-csv/toy.test'
+    FILE_TRAIN = './mnist/MNIST-csv/toy.train' # size 100
+    FILE_TEST = './mnist/MNIST-csv/toy.test' # size 10
     EPOCHS = 5
     BATCH_SIZE = 4
     INPUT_DIM_SIZE = 28 * 28
