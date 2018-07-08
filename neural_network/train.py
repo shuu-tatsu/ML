@@ -14,18 +14,22 @@ class Linear(object):
 
     def __init__(self,
                  input_size,
-                 target_size,
-                 batch_size):
-        self.w = np.random.rand(target_size, input_size)
-        self.b = np.random.rand(target_size, 1)
+                 target_size):
+        # self.w = np.random.rand(target_size, input_size)
+        # self.b = np.random.rand(target_size, 1)
+        self.w = np.ones((target_size, input_size)) * 0.01
+        self.b = np.zeros((target_size, 1))
         self.target_size = target_size
-        self.batch_size = batch_size
 
     def linear(self, x):
-        ones = np.ones((x.shape[1], 1))
+        '''
+        :param x: (features, batch) tensor of input features.
+
+        :returns: h, result of affine transform.
+        '''
+        # (target_size, batch)
         wx = np.dot(self.w, x).reshape(self.target_size, -1)
-        b = np.dot(self.b, ones.T)
-        return wx + b
+        return wx + self.b
 
     def get_layer_parameters(self):
         return self.w, self.b
@@ -34,23 +38,19 @@ class Linear(object):
 class NeuralNetwork(object):
 
     def __init__(self,
-                 batch_size,
                  input_dim_size,
                  hidden_dim_size,
                  output_dim_size):
-        self.batch_size = batch_size
         self.input_dim_size = input_dim_size
         self.hidden_dim_size = input_dim_size
         self.output_dim_size = output_dim_size
         # 入力層から隠れ層へ
         self.l1 = Linear(input_dim_size,
-                         hidden_dim_size,
-                         batch_size)
+                         hidden_dim_size)
         self.l1_w, self.l1_b = self.l1.get_layer_parameters()
         # 隠れ層から出力層へ
         self.l2 = Linear(hidden_dim_size,
-                         output_dim_size,
-                         batch_size)
+                         output_dim_size)
         self.l2_w, self.l2_b = self.l2.get_layer_parameters()
 
     def forward(self, x):
@@ -59,17 +59,18 @@ class NeuralNetwork(object):
         return z1, y
 
     def backward(self, x, z1, y, d):
-        ones = np.ones((self.batch_size, 1))
+        batch_size, _ = x.shape
+        ones = np.ones((batch_size, 1))
 
         delta2 = y - d
-        grad_w2 = np.dot(delta2, z1.T) / self.batch_size
-        grad_b2 = np.dot(delta2, ones) / self.batch_size
+        grad_w2 = np.dot(delta2, z1.T) / batch_size
+        grad_b2 = np.dot(delta2, ones) / batch_size
 
         sigmoid_dash = z1 * (1 - z1)
 
         delta1 = sigmoid_dash * np.dot(self.l2_w.T, delta2)
-        grad_w1 = np.dot(delta1, x) / self.batch_size
-        grad_b1 = np.dot(delta1, ones) / self.batch_size
+        grad_w1 = np.dot(delta1, x) / batch_size
+        grad_b1 = np.dot(delta1, ones) / batch_size
 
         grads = [grad_w1, grad_b1, grad_w2, grad_b2]
         return grads
@@ -83,8 +84,7 @@ def train(file_train,
           hidden_dim_size,
           output_dim_size,
           learning_rate):
-    model = NeuralNetwork(batch_size,
-                          input_dim_size,
+    model = NeuralNetwork(input_dim_size,
                           hidden_dim_size,
                           output_dim_size)
     cross_entropy = utils.CrossEntropyLoss(output_dim_size)
@@ -97,7 +97,7 @@ def train(file_train,
                                                                       batch_size,
                                                                       shuffle=True):
             # 順伝播
-            minibatch_features_reshaped = minibatch_features.reshape(input_dim_size, -1)
+            minibatch_features_reshaped = minibatch_features.T
             z1, minibatch_predicted_labels = model.forward(minibatch_features_reshaped)
             # 評価用にLOSSを算出
             loss = cross_entropy.calculate_loss(minibatch_predicted_labels, minibatch_labels)
@@ -114,6 +114,8 @@ def train(file_train,
         accuracy = inference_test.infer(file_test=file_test,
                                         model_trained=model)
         print('[{}] EPOCH {} Accuracy:{:.8f}'.format(datetime.datetime.today(), epoch, accuracy))
+        print(model.l2_w[:,:10])
+        print(model.l2_b)
 
 
     print('Finished Training')
