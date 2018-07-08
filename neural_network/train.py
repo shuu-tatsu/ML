@@ -5,6 +5,7 @@ import sys
 sys.path.append('./')
 import load
 import inference_test
+import utils
 import numpy as np
 import datetime
 
@@ -17,17 +18,14 @@ class Linear(object):
                  batch_size):
         self.w = np.random.rand(target_size, input_size)
         self.b = np.random.rand(target_size, 1)
+        self.target_size = target_size
         self.batch_size = batch_size
 
     def linear(self, x):
         ones = np.ones((self.batch_size, 1))
-        return np.dot(self.w, x) + np.dot(self.b, ones.T)
-
-    def linear_inference_z1(self, x):
-        return ((np.dot(self.w, x)) + self.b.T).T
-
-    def linear_inference_y(self, x):
-        return np.dot(self.w, x) + self.b
+        wx = np.dot(self.w, x).reshape(self.target_size, -1)
+        b = np.dot(self.b, ones.T)
+        return wx + b
 
     def get_layer_parameters(self):
         return self.w, self.b
@@ -57,16 +55,10 @@ class NeuralNetwork(object):
 
     def forward(self, x):
         x = x.T
-        z1 = sigmoid(self.l1.linear(x))
-        y = softmax(self.l2.linear(z1))
+        z1 = utils.sigmoid(self.l1.linear(x))
+        print('z1.shape:{}'.format(z1.shape))
+        y = utils.softmax(self.l2.linear(z1))
         return z1, y
-
-    def forward_inference(self, x):
-        x = x.T
-        z1 = sigmoid(self.l1.linear_inference_z1(x))
-        y = softmax(self.l2.linear_inference_y(z1))
-        return y
-
 
     def backward(self, x, z1, y, d):
         ones = np.ones((self.batch_size, 1))
@@ -85,70 +77,6 @@ class NeuralNetwork(object):
         return grads
 
 
-class SGD(object):
-
-    def __init__(self, model, learning_rate):
-        self.l1_w = model.l1_w
-        self.l1_b = model.l1_b
-        self.l2_w = model.l2_w
-        self.l2_b = model.l2_b
-        self.learning_rate = learning_rate
-
-    def update(self, grads):
-        grad_w1, grad_b1, grad_w2, grad_b2 = grads
-        self.l2_w -= self.learning_rate * grad_w2
-        self.l2_b -= self.learning_rate * grad_b2
-        self.l1_w -= self.learning_rate * grad_w1
-        self.l1_b -= self.learning_rate * grad_b1
-
-
-class CrossEntropyLoss(object):
-
-    def __init__(self, output_dim_size):
-        self.output_dim_size = output_dim_size
-
-    def calculate_loss(self,
-                       minibatch_predicted_labels,
-                       minibatch_labels):
-        onehot_labels = onehot_vectorizer(minibatch_labels, self.output_dim_size)
-        loss = (-1) * np.dot(onehot_labels, np.log(minibatch_predicted_labels))
-        loss = np.sum(loss) / self.output_dim_size
-        return loss
-
-
-def onehot_vectorizer(x, output_dim_size):
-    onehot_vec = np.identity(output_dim_size)[x]
-    return onehot_vec
-
-
-def sigmoid(x):
-    return 1 / (1 + np.exp(-x))
-
-
-def softmax(x):
-    exp_x = np.exp(x)
-    y = exp_x / np.sum(np.exp(x), axis=0, keepdims=True)
-    return y
-
-
-def get_batches(train_features,
-                train_labels,
-                batch_size,
-                shuffle):
-    xs = train_features
-    ys = train_labels
-    num_samples = len(ys)
-    indices = np.arange(num_samples)
-    if shuffle:
-        np.random.shuffle(indices)
-    offset = 0
-    while offset < num_samples:
-        x = np.take(xs, indices[offset:offset + batch_size], axis=0)
-        y = np.take(ys, indices[offset:offset + batch_size], axis=0)
-        offset += batch_size
-        yield x, y
-
-
 def train(file_train,
           file_test,
           epochs,
@@ -161,12 +89,12 @@ def train(file_train,
                           input_dim_size,
                           hidden_dim_size,
                           output_dim_size)
-    cross_entropy = CrossEntropyLoss(output_dim_size)
-    optimizer = SGD(model, learning_rate)
+    cross_entropy = utils.CrossEntropyLoss(output_dim_size)
+    optimizer = utils.SGD(model, learning_rate)
     train_loader = load.DataLoader(file_train)
     train_features, train_labels = train_loader.load()
     for epoch in range(epochs):
-        for minibatch_features, minibatch_labels in get_batches(train_features,
+        for minibatch_features, minibatch_labels in utils.get_batches(train_features,
                                                                 train_labels,
                                                                 batch_size,
                                                                 shuffle=True):
@@ -211,7 +139,7 @@ def main():
                           learning_rate=LEARNING_RATE)
 
     #inference_test.infer(file_test=FILE_TEST,
-    #                model_trained=model_trained)
+    #                     model_trained=model_trained)
 
 
 if __name__ == '__main__':
