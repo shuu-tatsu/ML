@@ -101,7 +101,7 @@ def train(file_train,
             z1, minibatch_predicted_labels = model.forward(minibatch_features_reshaped)
             # 評価用にLOSSを算出
             loss = cross_entropy.calculate_loss(minibatch_predicted_labels, minibatch_labels)
-            #print('[{}] EPOCH {} - LOSS {:.8f}'.format(datetime.datetime.today(), epoch, loss))
+            #print('LOSS {:.8f}'.format(loss))
             # 逆伝播
             grads = model.backward(x=minibatch_features,
                                    z1=z1,
