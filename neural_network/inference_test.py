@@ -15,10 +15,11 @@ def infer(file_test, model_trained):
     for feature, label in zip(test_features, test_labels):
         feature = np.array(feature)
         label = np.array(label)
-        _, predicted_tensor = model_trained.forward(feature)
-        #print('predicted_tensor:{}'.format(predicted_tensor))
+        feature_reshaped = feature.reshape(model_trained.input_dim_size, -1)
+        _, predicted_tensor = model_trained.forward(feature_reshaped)
+        print('predicted_tensor:{}'.format(predicted_tensor))
         predicted_label = np.argmax(predicted_tensor)
-        #print('predicted_label:{}'.format(predicted_label))
+        print('predicted_label:{}'.format(predicted_label))
         if predicted_label == label:
             correct += 1
-    #print('Accuracy %d / %d = %f' % (correct, total, correct / total))
+    print('Accuracy %d / %d = %f' % (correct, total, correct / total))

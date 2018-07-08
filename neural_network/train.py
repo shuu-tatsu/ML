@@ -22,7 +22,7 @@ class Linear(object):
         self.batch_size = batch_size
 
     def linear(self, x):
-        ones = np.ones((self.batch_size, 1))
+        ones = np.ones((x.shape[1], 1))
         wx = np.dot(self.w, x).reshape(self.target_size, -1)
         b = np.dot(self.b, ones.T)
         return wx + b
@@ -54,9 +54,7 @@ class NeuralNetwork(object):
         self.l2_w, self.l2_b = self.l2.get_layer_parameters()
 
     def forward(self, x):
-        x = x.T
         z1 = utils.sigmoid(self.l1.linear(x))
-        print('z1.shape:{}'.format(z1.shape))
         y = utils.softmax(self.l2.linear(z1))
         return z1, y
 
@@ -95,11 +93,12 @@ def train(file_train,
     train_features, train_labels = train_loader.load()
     for epoch in range(epochs):
         for minibatch_features, minibatch_labels in utils.get_batches(train_features,
-                                                                train_labels,
-                                                                batch_size,
-                                                                shuffle=True):
+                                                                      train_labels,
+                                                                      batch_size,
+                                                                      shuffle=True):
             # 順伝播
-            z1, minibatch_predicted_labels = model.forward(minibatch_features)
+            minibatch_features_reshaped = minibatch_features.T
+            z1, minibatch_predicted_labels = model.forward(minibatch_features_reshaped)
             # 評価用にLOSSを算出
             loss = cross_entropy.calculate_loss(minibatch_predicted_labels, minibatch_labels)
             print('[{}] EPOCH {} - LOSS {:.8f}'.format(datetime.datetime.today(), epoch, loss))
