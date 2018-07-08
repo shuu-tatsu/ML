@@ -10,14 +10,14 @@ import numpy as np
 import datetime
 
 
-class Linear(object):
+class Linear():
 
     def __init__(self,
                  input_size,
                  target_size):
         # self.w = np.random.rand(target_size, input_size)
         # self.b = np.random.rand(target_size, 1)
-        self.w = np.ones((target_size, input_size)) * 0.01
+        self.w = np.ones((target_size, input_size)) * 0.00001
         self.b = np.zeros((target_size, 1))
         self.target_size = target_size
 
@@ -35,7 +35,7 @@ class Linear(object):
         return self.w, self.b
 
 
-class NeuralNetwork(object):
+class NeuralNetwork():
 
     def __init__(self,
                  input_dim_size,
@@ -58,11 +58,11 @@ class NeuralNetwork(object):
         y = utils.softmax(self.l2.linear(z1))
         return z1, y
 
-    def backward(self, x, z1, y, d):
+    def backward(self, x, z1, y, t):
         batch_size, _ = x.shape
         ones = np.ones((batch_size, 1))
-
-        delta2 = y - d
+        t_onehot = utils.onehot_vectorizer(t, y.shape[0])
+        delta2 = y - t_onehot
         grad_w2 = np.dot(delta2, z1.T) / batch_size
         grad_b2 = np.dot(delta2, ones) / batch_size
 
@@ -87,7 +87,6 @@ def train(file_train,
     model = NeuralNetwork(input_dim_size,
                           hidden_dim_size,
                           output_dim_size)
-    cross_entropy = utils.CrossEntropyLoss(output_dim_size)
     optimizer = utils.SGD(model, learning_rate)
     train_loader = load.DataLoader(file_train)
     train_features, train_labels = train_loader.load()
@@ -99,14 +98,11 @@ def train(file_train,
             # 順伝播
             minibatch_features_reshaped = minibatch_features.T
             z1, minibatch_predicted_labels = model.forward(minibatch_features_reshaped)
-            # 評価用にLOSSを算出
-            loss = cross_entropy.calculate_loss(minibatch_predicted_labels, minibatch_labels)
-            #print('LOSS {:.8f}'.format(loss))
             # 逆伝播
             grads = model.backward(x=minibatch_features,
                                    z1=z1,
                                    y=minibatch_predicted_labels,
-                                   d=minibatch_labels)
+                                   t=minibatch_labels)
             # パラメータの更新
             optimizer.update(grads)
 
@@ -114,11 +110,9 @@ def train(file_train,
         accuracy = inference_test.infer(file_test=file_test,
                                         model_trained=model)
         print('[{}] EPOCH {} Accuracy:{:.8f}'.format(datetime.datetime.today(), epoch, accuracy))
-        print(model.l2_w[:,:10])
-        print(model.l2_b)
 
 
-    print('Finished Training')
+    print('[{}] Finished Training'.format(datetime.datetime.today()))
     return model
 
 
@@ -127,7 +121,7 @@ def main():
     #FILE_TEST = './mnist/MNIST-csv/test.csv'
     FILE_TRAIN = './mnist/MNIST-csv/toy.train' # size 100
     FILE_TEST = './mnist/MNIST-csv/toy.test' # size 10
-    EPOCHS = 5
+    EPOCHS = 30
     BATCH_SIZE = 4
     INPUT_DIM_SIZE = 28 * 28
     HIDDEN_DIM_SIZE = 100

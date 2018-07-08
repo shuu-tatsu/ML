@@ -17,9 +17,8 @@ def infer(file_test, model_trained):
         label = np.array(label)
         feature_reshaped = feature.reshape(model_trained.input_dim_size, -1)
         _, predicted_tensor = model_trained.forward(feature_reshaped)
-        #print('predicted_tensor:{}'.format(predicted_tensor))
         predicted_label = np.argmax(predicted_tensor)
-        print('Predicted_label:{} Correct_label:{}'.format(predicted_label, label))
+        #print('Predicted_label:{} Correct_label:{}'.format(predicted_label, label))
         if predicted_label == label:
             correct += 1
     accuracy = correct / total

@@ -6,7 +6,7 @@ sys.path.append('./')
 import numpy as np
 
 
-class SGD(object):
+class SGD():
 
     def __init__(self, model, learning_rate):
         self.l1_w = model.l1_w
@@ -23,7 +23,7 @@ class SGD(object):
         self.l1_b -= self.learning_rate * grad_b1
 
 
-class CrossEntropyLoss(object):
+class CrossEntropyLoss():
 
     def __init__(self, output_dim_size):
         self.output_dim_size = output_dim_size
@@ -39,7 +39,7 @@ class CrossEntropyLoss(object):
 
 def onehot_vectorizer(x, output_dim_size):
     onehot_vec = np.identity(output_dim_size)[x]
-    return onehot_vec
+    return onehot_vec.T
 
 
 def sigmoid(x):
