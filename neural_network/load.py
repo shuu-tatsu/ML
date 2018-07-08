@@ -25,8 +25,8 @@ def read_data(lines):
 def main():
     #FILE_TRAIN = './mnist/MNIST-csv/train.csv'
     #FILE_TEST = './mnist/MNIST-csv/test.csv'
-    FILE_TRAIN = './mnist/MNIST-csv/toy_train.csv'
-    FILE_TEST = './mnist/MNIST-csv/toy_test.csv'
+    FILE_TRAIN = './mnist/MNIST-csv/toy.train'
+    FILE_TEST = './mnist/MNIST-csv/toy.test'
 
     train_loader = DataLoader(data_path=FILE_TRAIN)
     train_features, train_labels = train_loader.load()

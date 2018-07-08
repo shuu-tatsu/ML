@@ -55,6 +55,7 @@ class NeuralNetwork(object):
 
     def forward(self, x):
         z1 = utils.sigmoid(self.l1.linear(x))
+        print('z1.shape:{}'.format(z1.shape))
         y = utils.softmax(self.l2.linear(z1))
         return z1, y
 
@@ -97,7 +98,7 @@ def train(file_train,
                                                                       batch_size,
                                                                       shuffle=True):
             # 順伝播
-            minibatch_features_reshaped = minibatch_features.T
+            minibatch_features_reshaped = minibatch_features.reshape(input_dim_size, -1)
             z1, minibatch_predicted_labels = model.forward(minibatch_features_reshaped)
             # 評価用にLOSSを算出
             loss = cross_entropy.calculate_loss(minibatch_predicted_labels, minibatch_labels)
@@ -119,8 +120,8 @@ def train(file_train,
 def main():
     #FILE_TRAIN = './mnist/MNIST-csv/train.csv'
     #FILE_TEST = './mnist/MNIST-csv/test.csv'
-    FILE_TRAIN = './mnist/MNIST-csv/toy_train.csv'
-    FILE_TEST = './mnist/MNIST-csv/toy_test.csv'
+    FILE_TRAIN = './mnist/MNIST-csv/toy.train'
+    FILE_TEST = './mnist/MNIST-csv/toy.test'
     EPOCHS = 5
     BATCH_SIZE = 4
     INPUT_DIM_SIZE = 28 * 28
@@ -136,9 +137,6 @@ def main():
                           hidden_dim_size=HIDDEN_DIM_SIZE,
                           output_dim_size=OUTPUT_DIM_SIZE,
                           learning_rate=LEARNING_RATE)
-
-    #inference_test.infer(file_test=FILE_TEST,
-    #                     model_trained=model_trained)
 
 
 if __name__ == '__main__':
